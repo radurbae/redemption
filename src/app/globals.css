@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f9fafb;
+  --foreground: #111827;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* Custom focus ring for better accessibility */
+@layer base {
+  *:focus-visible {
+    @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+  }
+}
+
+/* Dialog backdrop animation */
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0);
+  transition: background-color 0.2s ease-out;
+}
+
+dialog[open]::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Smooth page transitions */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Animation for loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
