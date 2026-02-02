@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import IOSInstallBanner from "@/components/IOSInstallBanner";
+import { ToastProvider } from "@/components/Toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
   themeColor: "#4f46e5",
 };
 
@@ -47,9 +49,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="1% Better" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ServiceWorkerRegistration />
-        {children}
-        <IOSInstallBanner />
+        <ToastProvider>
+          <ServiceWorkerRegistration />
+          {children}
+          <IOSInstallBanner />
+        </ToastProvider>
       </body>
     </html>
   );

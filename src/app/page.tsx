@@ -1,158 +1,164 @@
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { getHabits } from '@/lib/actions/habits';
-import { getTodayAndYesterdayCheckins, getAllCheckinsForStreak } from '@/lib/actions/checkins';
-import { filterHabitsForDate } from '@/lib/utils/schedule';
-import { calculateStreak } from '@/lib/utils/streak';
-import { getTodayString, getYesterdayString, formatDisplayDate } from '@/lib/utils/dates';
-import NavBar from '@/components/NavBar';
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import AppShell from '@/components/AppShell';
 import HabitCard from '@/components/HabitCard';
-import type { Habit, HabitWithCheckin } from '@/lib/types';
+import { HabitCardSkeleton, ProgressSkeleton } from '@/components/Skeletons';
+import Link from 'next/link';
+import type { Habit, Checkin } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
+import { formatDate, getYesterdayDate } from '@/lib/utils/dates';
+import { shouldShowHabitOnDate } from '@/lib/utils/schedule';
+import { calculateStreak, shouldShowNeverMissTwiceWarning } from '@/lib/utils/streak';
 
-export const dynamic = 'force-dynamic';
+interface HabitWithCheckin extends Habit {
+  checkin: Checkin | null;
+  streak: number;
+  showNeverMissTwice: boolean;
+}
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export default function TodayPage() {
+  const [habits, setHabits] = useState<HabitWithCheckin[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const today = formatDate(new Date());
+  const yesterday = getYesterdayDate();
 
-  if (!user) {
-    redirect('/login');
-  }
+  const fetchData = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-  const today = new Date();
-  const todayStr = getTodayString();
-  const yesterdayStr = getYesterdayString();
+    if (!user) return;
 
-  // Fetch all habits
-  const allHabits = await getHabits();
+    // Fetch habits
+    const { data: habitsData } = await supabase
+      .from('habits')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
 
-  // Filter habits for today based on schedule
-  const todaysHabits = filterHabitsForDate(allHabits as Habit[], today);
+    if (!habitsData) {
+      setIsLoading(false);
+      return;
+    }
 
-  // Get habit IDs
-  const habitIds = todaysHabits.map(h => h.id);
+    // Filter to today's schedule
+    const todayHabits = habitsData.filter(h => shouldShowHabitOnDate(h, today));
 
-  // Fetch checkins for today and yesterday
-  const checkinMap = await getTodayAndYesterdayCheckins(habitIds, todayStr, yesterdayStr);
+    // Fetch checkins for today and yesterday
+    const { data: checkinsData } = await supabase
+      .from('checkins')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('date', [today, yesterday]);
 
-  // Fetch all checkins for streak calculation
-  const streakCheckinsMap = await getAllCheckinsForStreak(habitIds);
+    // Fetch all checkins for streak calculation
+    const { data: allCheckinsData } = await supabase
+      .from('checkins')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('date', formatDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)))
+      .order('date', { ascending: false });
 
-  // Build HabitWithCheckin array
-  const habitsWithCheckins: HabitWithCheckin[] = todaysHabits.map(habit => {
-    const checkinData = checkinMap.get(habit.id) || { today: null, yesterday: null };
-    const streakCheckins = streakCheckinsMap.get(habit.id) || [];
-    const streak = calculateStreak(habit as Habit, streakCheckins, today);
+    const checkins = checkinsData || [];
+    const allCheckins = allCheckinsData || [];
 
-    return {
-      ...(habit as Habit),
-      todayCheckin: checkinData.today,
-      yesterdayCheckin: checkinData.yesterday,
-      streak,
-    };
-  });
+    const enrichedHabits: HabitWithCheckin[] = todayHabits.map(habit => {
+      const todayCheckin = checkins.find(c => c.habit_id === habit.id && c.date === today) || null;
+      const yesterdayCheckin = checkins.find(c => c.habit_id === habit.id && c.date === yesterday) || null;
+      const habitCheckins = allCheckins.filter(c => c.habit_id === habit.id);
+      const streak = calculateStreak(habit, habitCheckins);
+      const showNeverMissTwice = shouldShowNeverMissTwiceWarning(habit, todayCheckin, yesterdayCheckin);
 
-  // Calculate overall stats
-  const completedToday = habitsWithCheckins.filter(h => h.todayCheckin?.status === 'done').length;
-  const totalToday = habitsWithCheckins.length;
+      return {
+        ...habit,
+        checkin: todayCheckin,
+        streak,
+        showNeverMissTwice,
+      };
+    });
+
+    setHabits(enrichedHabits);
+    setIsLoading(false);
+  }, [today, yesterday]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const completedCount = habits.filter(h => h.checkin?.status === 'done').length;
+  const totalCount = habits.length;
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-      <NavBar />
+    <AppShell>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Today</h1>
+        <p className="text-gray-500 text-sm">
+          {new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </p>
+      </div>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            Today&apos;s Habits
-          </h1>
-          <p className="text-gray-600">{formatDisplayDate(today)}</p>
-        </div>
-
-        {/* Progress summary */}
-        {totalToday > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Daily Progress</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {completedToday} of {totalToday} completed
-                </p>
-              </div>
-              <div className="w-16 h-16">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="16"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="3"
-                  />
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="16"
-                    fill="none"
-                    stroke="#22c55e"
-                    strokeWidth="3"
-                    strokeDasharray={`${(completedToday / totalToday) * 100} 100`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-            </div>
+      {/* Progress */}
+      {isLoading ? (
+        <ProgressSkeleton />
+      ) : totalCount > 0 ? (
+        <div className="card p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-600">
+              Progress
+            </span>
+            <span className="text-sm font-semibold text-gray-900">
+              {completedCount}/{totalCount}
+            </span>
           </div>
-        )}
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
 
-        {/* Habits list or empty state */}
-        {habitsWithCheckins.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-            <div className="text-5xl mb-4">🌱</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {allHabits.length === 0
-                ? 'Start your journey'
-                : 'No habits scheduled for today'}
+      {/* Habits list */}
+      <div className="space-y-4">
+        {isLoading ? (
+          <>
+            <HabitCardSkeleton />
+            <HabitCardSkeleton />
+            <HabitCardSkeleton />
+          </>
+        ) : habits.length === 0 ? (
+          <div className="card p-8 text-center">
+            <div className="text-4xl mb-4">🎯</div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              No habits for today
             </h2>
-            <p className="text-gray-600 mb-6">
-              {allHabits.length === 0
-                ? 'Create your first habit using the 4 Laws of Behavior Change'
-                : 'Your weekday habits will appear here on Monday through Friday'}
+            <p className="text-gray-500 text-sm mb-6">
+              Create your first habit to start tracking
             </p>
-            {allHabits.length === 0 && (
-              <Link
-                href="/new"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                Create Your First Habit
-              </Link>
-            )}
+            <Link href="/new" className="btn-primary inline-block">
+              Create Habit
+            </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {habitsWithCheckins.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                todayDate={todayStr}
-                todayCheckin={habit.todayCheckin}
-                yesterdayCheckin={habit.yesterdayCheckin}
-                streak={habit.streak}
-              />
-            ))}
-          </div>
+          habits.map(habit => (
+            <HabitCard
+              key={habit.id}
+              habit={habit}
+              checkin={habit.checkin}
+              streak={habit.streak}
+              showNeverMissTwice={habit.showNeverMissTwice}
+              today={today}
+            />
+          ))
         )}
-
-        {/* Atomic Habits tip */}
-        <div className="mt-8 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
-          <h3 className="font-semibold text-indigo-900 mb-2">💡 Remember</h3>
-          <p className="text-sm text-indigo-800">
-            Improvement is not about doing more things. It&apos;s about getting 1% better every day.
-            Small habits don&apos;t add up—they compound.
-          </p>
-        </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -2,111 +2,103 @@
 
 import { useState, useTransition } from 'react';
 import { setCheckin, clearCheckin } from '@/lib/actions/checkins';
+import { useToast } from './Toast';
 
 interface CheckinButtonsProps {
     habitId: string;
-    date: string;
     currentStatus: 'done' | 'skipped' | null;
+    date: string;
 }
 
 export default function CheckinButtons({
     habitId,
-    date,
     currentStatus,
+    date
 }: CheckinButtonsProps) {
     const [isPending, startTransition] = useTransition();
     const [optimisticStatus, setOptimisticStatus] = useState(currentStatus);
+    const { showToast } = useToast();
 
     const handleDone = () => {
         setOptimisticStatus('done');
         startTransition(async () => {
-            try {
-                await setCheckin(habitId, date, 'done');
-            } catch (error) {
-                setOptimisticStatus(currentStatus);
-                console.error('Failed to set checkin:', error);
-            }
+            await setCheckin(habitId, date, 'done');
+            showToast('Marked as done!', 'success');
         });
     };
 
     const handleSkip = () => {
         setOptimisticStatus('skipped');
         startTransition(async () => {
-            try {
-                await setCheckin(habitId, date, 'skipped');
-            } catch (error) {
-                setOptimisticStatus(currentStatus);
-                console.error('Failed to set checkin:', error);
-            }
+            await setCheckin(habitId, date, 'skipped');
         });
     };
 
     const handleUndo = () => {
         setOptimisticStatus(null);
         startTransition(async () => {
-            try {
-                await clearCheckin(habitId, date);
-            } catch (error) {
-                setOptimisticStatus(currentStatus);
-                console.error('Failed to clear checkin:', error);
-            }
+            await clearCheckin(habitId, date);
         });
     };
 
+    // Not checked in yet
+    if (!optimisticStatus) {
+        return (
+            <div className="flex items-center gap-2 w-full">
+                <button
+                    onClick={handleDone}
+                    disabled={isPending}
+                    className="btn-success flex-1"
+                    aria-label="Mark as done"
+                >
+                    Done
+                </button>
+                <button
+                    onClick={handleSkip}
+                    disabled={isPending}
+                    className="btn-skip"
+                    aria-label="Skip for today"
+                >
+                    Skip
+                </button>
+            </div>
+        );
+    }
+
+    // Marked as done
+    if (optimisticStatus === 'done') {
+        return (
+            <div className="flex items-center gap-2 w-full">
+                <span className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-xl text-sm font-medium">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Done!
+                </span>
+                <button
+                    onClick={handleUndo}
+                    disabled={isPending}
+                    className="px-4 py-3 text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors"
+                >
+                    Undo
+                </button>
+            </div>
+        );
+    }
+
+    // Marked as skipped
     return (
-        <div className="flex gap-2">
-            {optimisticStatus === null && (
-                <>
-                    <button
-                        onClick={handleDone}
-                        disabled={isPending}
-                        className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 transition-colors text-sm font-medium"
-                        aria-label="Mark as done"
-                    >
-                        Done
-                    </button>
-                    <button
-                        onClick={handleSkip}
-                        disabled={isPending}
-                        className="flex items-center gap-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 transition-colors text-sm font-medium"
-                        aria-label="Skip for today"
-                    >
-                        Skip
-                    </button>
-                </>
-            )}
-
-            {optimisticStatus === 'done' && (
-                <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
-                        Completed!
-                    </span>
-                    <button
-                        onClick={handleUndo}
-                        disabled={isPending}
-                        className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 transition-colors text-sm"
-                        aria-label="Undo check-in"
-                    >
-                        Undo
-                    </button>
-                </div>
-            )}
-
-            {optimisticStatus === 'skipped' && (
-                <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
-                        Skipped
-                    </span>
-                    <button
-                        onClick={handleUndo}
-                        disabled={isPending}
-                        className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 transition-colors text-sm"
-                        aria-label="Undo skip"
-                    >
-                        Undo
-                    </button>
-                </div>
-            )}
+        <div className="flex items-center gap-2 w-full">
+            <span className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">
+                Skipped
+            </span>
+            <button
+                onClick={handleUndo}
+                disabled={isPending}
+                className="px-4 py-3 text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors"
+            >
+                Undo
+            </button>
         </div>
     );
 }

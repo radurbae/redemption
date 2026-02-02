@@ -56,19 +56,19 @@ function LoginForm() {
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="card p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
                 {isSignUp ? 'Create your account' : 'Welcome back'}
             </h2>
 
             {(error || authError) && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm">
                     {error || 'Authentication error. Please try again.'}
                 </div>
             )}
 
             {message && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                <div className="mb-4 p-4 bg-green-50 border border-green-100 rounded-xl text-green-700 text-sm">
                     {message}
                 </div>
             )}
@@ -77,7 +77,7 @@ function LoginForm() {
                 <div>
                     <label
                         htmlFor="email"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 mb-2"
                     >
                         Email
                     </label>
@@ -87,7 +87,7 @@ function LoginForm() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
                         placeholder="you@example.com"
                     />
                 </div>
@@ -95,7 +95,7 @@ function LoginForm() {
                 <div>
                     <label
                         htmlFor="password"
-                        className="block text-sm font-medium text-gray-700 mb-1"
+                        className="block text-sm font-medium text-gray-700 mb-2"
                     >
                         Password
                     </label>
@@ -106,7 +106,7 @@ function LoginForm() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={6}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors"
                         placeholder="••••••••"
                     />
                 </div>
@@ -114,7 +114,7 @@ function LoginForm() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full py-3.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors btn-press"
                 >
                     {isLoading ? (
                         <span className="flex items-center justify-center gap-2">
@@ -165,13 +165,13 @@ function LoginForm() {
 
 function LoginFormFallback() {
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="card p-6">
             <div className="animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-1/2 mb-6" />
                 <div className="space-y-4">
-                    <div className="h-10 bg-gray-200 rounded" />
-                    <div className="h-10 bg-gray-200 rounded" />
-                    <div className="h-12 bg-gray-200 rounded" />
+                    <div className="h-12 bg-gray-200 rounded-xl" />
+                    <div className="h-12 bg-gray-200 rounded-xl" />
+                    <div className="h-12 bg-gray-200 rounded-xl" />
                 </div>
             </div>
         </div>
@@ -180,13 +180,16 @@ function LoginFormFallback() {
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-            <div className="w-full max-w-md">
+        <div
+            className="min-h-screen flex items-center justify-center bg-gray-50 px-4"
+            style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
+            <div className="w-full max-w-sm">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
                         1% Better
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500">
                         Build atomic habits that stick
                     </p>
                 </div>
@@ -195,10 +198,8 @@ export default function LoginPage() {
                     <LoginForm />
                 </Suspense>
 
-                <p className="mt-6 text-center text-sm text-gray-500 italic">
-                    &ldquo;Every action is a vote for the type of person you wish to become.&rdquo;
-                    <br />
-                    <span className="not-italic">— James Clear, Atomic Habits</span>
+                <p className="mt-6 text-center text-sm text-gray-400 italic">
+                    &ldquo;Every action is a vote for the type<br />of person you wish to become.&rdquo;
                 </p>
             </div>
         </div>

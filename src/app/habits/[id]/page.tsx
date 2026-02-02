@@ -1,140 +1,181 @@
-import { notFound, redirect } from 'next/navigation';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { getHabit, deleteHabit } from '@/lib/actions/habits';
-import { getCheckinsForHabit } from '@/lib/actions/checkins';
-import { calculateStreak } from '@/lib/utils/streak';
-import NavBar from '@/components/NavBar';
+import AppShell from '@/components/AppShell';
 import HabitForm from '@/components/HabitForm';
+import BottomSheet from '@/components/BottomSheet';
+import { useToast } from '@/components/Toast';
 import type { Habit } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
+import { deleteHabit } from '@/lib/actions/habits';
 
-interface HabitDetailPageProps {
-    params: Promise<{ id: string }>;
-}
+export default function HabitDetailPage({ params }: { params: { id: string } }) {
+    const router = useRouter();
+    const [habit, setHabit] = useState<Habit | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { showToast } = useToast();
 
-export default async function HabitDetailPage({ params }: HabitDetailPageProps) {
-    const { id } = await params;
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    useEffect(() => {
+        async function fetchHabit() {
+            const supabase = createClient();
+            const { data } = await supabase
+                .from('habits')
+                .select('*')
+                .eq('id', params.id)
+                .single();
 
-    if (!user) {
-        redirect('/login');
+            if (data) {
+                setHabit(data);
+            }
+            setIsLoading(false);
+        }
+        fetchHabit();
+    }, [params.id]);
+
+    const handleDelete = async () => {
+        if (!habit) return;
+        setIsDeleting(true);
+        await deleteHabit(habit.id);
+        showToast('Habit deleted', 'info');
+        router.push('/');
+    };
+
+    if (isLoading) {
+        return (
+            <AppShell>
+                <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/2" />
+                    <div className="card p-4 space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-1/3" />
+                        <div className="h-4 bg-gray-200 rounded w-full" />
+                        <div className="h-4 bg-gray-200 rounded w-2/3" />
+                    </div>
+                </div>
+            </AppShell>
+        );
     }
-
-    const habit = await getHabit(id);
 
     if (!habit) {
-        notFound();
+        return (
+            <AppShell>
+                <div className="card p-8 text-center">
+                    <div className="text-4xl mb-4">🔍</div>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                        Habit not found
+                    </h2>
+                    <p className="text-gray-500 text-sm mb-6">
+                        This habit may have been deleted
+                    </p>
+                    <Link href="/" className="btn-primary inline-block">
+                        Go Home
+                    </Link>
+                </div>
+            </AppShell>
+        );
     }
 
-    const checkins = await getCheckinsForHabit(id);
-    const streak = calculateStreak(habit as Habit, checkins);
-
-    async function handleDelete() {
-        'use server';
-        await deleteHabit(id);
+    if (isEditing) {
+        return <HabitForm habit={habit} mode="edit" />;
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-            <NavBar />
+        <AppShell>
+            {/* Back button */}
+            <Link
+                href="/"
+                className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm font-medium mb-4"
+            >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+            </Link>
 
-            <main className="max-w-4xl mx-auto px-4 py-8">
-                {/* Back link */}
-                <Link
-                    href="/"
-                    className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{habit.title}</h1>
+            <p className="text-gray-500 text-sm mb-6">
+                {habit.schedule === 'weekdays' ? 'Weekdays only' : 'Every day'}
+            </p>
+
+            {/* 4 Laws breakdown */}
+            <div className="space-y-4 mb-8">
+                <div className="card p-4">
+                    <p className="text-sm font-medium text-indigo-600 mb-1">Identity</p>
+                    <p className="text-gray-900">I am a person who {habit.identity}</p>
+                </div>
+
+                {habit.obvious_cue && (
+                    <div className="card p-4">
+                        <p className="text-sm font-medium text-indigo-600 mb-1">Make it Obvious</p>
+                        <p className="text-gray-900">{habit.obvious_cue}</p>
+                    </div>
+                )}
+
+                {habit.attractive_bundle && (
+                    <div className="card p-4">
+                        <p className="text-sm font-medium text-indigo-600 mb-1">Make it Attractive</p>
+                        <p className="text-gray-900">{habit.attractive_bundle}</p>
+                    </div>
+                )}
+
+                <div className="card p-4">
+                    <p className="text-sm font-medium text-indigo-600 mb-1">Make it Easy</p>
+                    <p className="text-gray-900">{habit.easy_step}</p>
+                </div>
+
+                {habit.satisfying_reward && (
+                    <div className="card p-4">
+                        <p className="text-sm font-medium text-indigo-600 mb-1">Make it Satisfying</p>
+                        <p className="text-gray-900">{habit.satisfying_reward}</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-3">
+                <button
+                    onClick={() => setIsEditing(true)}
+                    className="w-full py-3.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors btn-press"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back to Dashboard
-                </Link>
+                    Edit Habit
+                </button>
+                <button
+                    onClick={() => setShowDeleteSheet(true)}
+                    className="w-full py-3.5 text-red-600 font-medium"
+                >
+                    Delete Habit
+                </button>
+            </div>
 
-                {/* Header */}
-                <div className="flex items-start justify-between gap-4 mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-1">{habit.title}</h1>
-                        <p className="text-indigo-600 font-medium">&ldquo;{habit.identity}&rdquo;</p>
-                    </div>
-
-                    {streak > 0 && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full font-medium">
-                            <span>🔥</span>
-                            <span>{streak} day streak</span>
-                        </div>
-                    )}
+            {/* Delete confirmation */}
+            <BottomSheet
+                isOpen={showDeleteSheet}
+                onClose={() => setShowDeleteSheet(false)}
+                title="Delete Habit?"
+            >
+                <p className="text-gray-600 mb-6">
+                    This will permanently delete &ldquo;{habit.title}&rdquo; and all its check-in history. This action cannot be undone.
+                </p>
+                <div className="space-y-3">
+                    <button
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="w-full py-4 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 disabled:opacity-50 btn-press"
+                    >
+                        {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                    <button
+                        onClick={() => setShowDeleteSheet(false)}
+                        className="w-full py-4 text-gray-600 font-medium"
+                    >
+                        Cancel
+                    </button>
                 </div>
-
-                {/* Habit details card */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">The 4 Laws</h2>
-
-                    <div className="space-y-4">
-                        {habit.obvious_cue && (
-                            <div className="p-4 bg-blue-50 rounded-lg">
-                                <h3 className="text-sm font-medium text-blue-600 uppercase tracking-wide mb-1">
-                                    📍 Make it Obvious
-                                </h3>
-                                <p className="text-blue-800">{habit.obvious_cue}</p>
-                            </div>
-                        )}
-
-                        {habit.attractive_bundle && (
-                            <div className="p-4 bg-purple-50 rounded-lg">
-                                <h3 className="text-sm font-medium text-purple-600 uppercase tracking-wide mb-1">
-                                    ✨ Make it Attractive
-                                </h3>
-                                <p className="text-purple-800">{habit.attractive_bundle}</p>
-                            </div>
-                        )}
-
-                        <div className="p-4 bg-green-50 rounded-lg">
-                            <h3 className="text-sm font-medium text-green-600 uppercase tracking-wide mb-1">
-                                ⏱️ Make it Easy (2-Minute Step)
-                            </h3>
-                            <p className="text-green-800">{habit.easy_step}</p>
-                        </div>
-
-                        {habit.satisfying_reward && (
-                            <div className="p-4 bg-amber-50 rounded-lg">
-                                <h3 className="text-sm font-medium text-amber-600 uppercase tracking-wide mb-1">
-                                    🎉 Make it Satisfying
-                                </h3>
-                                <p className="text-amber-800">{habit.satisfying_reward}</p>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                        <span className="text-sm text-gray-500">
-                            Schedule: {habit.schedule === 'daily' ? '📅 Every day' : '📆 Weekdays only'}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Edit form */}
-                <div className="mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Edit Habit</h2>
-                    <HabitForm habit={habit as Habit} mode="edit" />
-                </div>
-
-                {/* Delete section */}
-                <div className="bg-red-50 border border-red-100 rounded-xl p-6">
-                    <h2 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h2>
-                    <p className="text-sm text-red-700 mb-4">
-                        Deleting a habit will also remove all its check-in history. This action cannot be undone.
-                    </p>
-                    <form action={handleDelete}>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
-                        >
-                            Delete Habit
-                        </button>
-                    </form>
-                </div>
-            </main>
-        </div>
+            </BottomSheet>
+        </AppShell>
     );
 }

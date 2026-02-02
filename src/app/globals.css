@@ -2,72 +2,247 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   CSS VARIABLES & SAFE AREAS
+   ======================================== */
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card-bg: #ffffff;
+  --border-color: #e5e5e7;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --success: #22c55e;
+  --success-bg: #dcfce7;
+  --muted: #6b7280;
+
+  /* Safe areas with fallbacks */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+
+  /* App chrome sizes */
+  --header-height: 56px;
+  --bottom-nav-height: 64px;
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Custom focus ring for better accessibility */
+/* Prevent iOS zoom on input focus */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+/* Remove tap highlight on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Better touch behavior on buttons */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* ========================================
+   SAFE AREA UTILITIES
+   ======================================== */
+@layer utilities {
+  .pt-safe {
+    padding-top: max(1rem, var(--safe-area-top));
+  }
+
+  .pb-safe {
+    padding-bottom: max(1rem, var(--safe-area-bottom));
+  }
+
+  .mb-safe {
+    margin-bottom: var(--safe-area-bottom);
+  }
+
+  .bottom-nav-height {
+    height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  }
+
+  .pb-bottom-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 1rem);
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
 @layer base {
   *:focus-visible {
     @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
   }
 }
 
-/* Dialog backdrop animation */
-dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0);
-  transition: background-color 0.2s ease-out;
-}
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
 
-dialog[open]::backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* Smooth page transitions */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ========================================
+   COMPONENTS
+   ======================================== */
+
+/* Card styles */
+.card {
+  @apply bg-white rounded-2xl border border-gray-100 shadow-sm;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+/* Press animation for buttons */
+.btn-press {
+  @apply transition-all duration-150 active:scale-[0.97] active:opacity-90;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+/* Primary button */
+.btn-primary {
+  @apply px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl;
+  @apply hover:bg-indigo-700 active:bg-indigo-800;
+  @apply btn-press;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+/* Secondary button */
+.btn-secondary {
+  @apply px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl;
+  @apply hover:bg-gray-200 active:bg-gray-300;
+  @apply btn-press;
 }
 
-/* Animation for loading spinner */
-@keyframes spin {
+/* Success button (Done) */
+.btn-success {
+  @apply px-6 py-3.5 bg-green-500 text-white font-semibold rounded-xl;
+  @apply hover:bg-green-600 active:bg-green-700;
+  @apply btn-press min-h-[48px];
+}
+
+/* Skip button */
+.btn-skip {
+  @apply px-4 py-3.5 bg-gray-100 text-gray-600 font-medium rounded-xl;
+  @apply hover:bg-gray-200 active:bg-gray-300;
+  @apply btn-press min-h-[48px];
+}
+
+/* ========================================
+   SKELETON LOADING
+   ======================================== */
+.skeleton {
+  @apply bg-gray-200 rounded-lg animate-pulse;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ========================================
+   TOAST / SNACKBAR
+   ======================================== */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%) scale(0.9);
+  }
+
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(100%) scale(0.9);
+  }
 }
 
-/* Slide up animation for iOS install banner */
+.toast-enter {
+  animation: toast-in 0.3s ease-out;
+}
+
+.toast-exit {
+  animation: toast-out 0.2s ease-in forwards;
+}
+
+/* ========================================
+   BOTTOM SHEET
+   ======================================== */
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-down {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.sheet-enter {
+  animation: sheet-up 0.3s ease-out;
+}
+
+.sheet-exit {
+  animation: sheet-down 0.2s ease-in forwards;
+}
+
+/* ========================================
+   SLIDE UP (for iOS banner)
+   ======================================== */
 @keyframes slide-up {
   from {
     opacity: 0;
@@ -82,4 +257,77 @@ dialog[open]::backdrop {
 
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
+}
+
+/* ========================================
+   DIALOG & MODAL
+   ======================================== */
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0);
+  transition: background-color 0.2s ease-out;
+}
+
+dialog[open]::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   SCROLLBAR
+   ======================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse-success {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+}
+
+.pulse-success {
+  animation: pulse-success 0.6s ease-out;
 }
