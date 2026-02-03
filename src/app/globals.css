@@ -445,9 +445,10 @@ a,
 .skeleton {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 0.5rem;
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  /* Animation removed for better performance on low-end devices */
 }
 
+/* Keep keyframes available for other uses */
 @keyframes skeleton-pulse {
 
   0%,
