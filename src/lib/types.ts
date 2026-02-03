@@ -170,6 +170,7 @@ export interface Task {
   title: string;
   completed: boolean;
   date: string;
+  scheduled_time: string | null; // HH:MM format or null if no time set
   created_at: string;
 }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Sword, Star, Flame, Clock, Coins, Sparkles } from 'lucide-react';
 import type { Habit, Checkin } from '@/lib/types';
@@ -41,9 +42,11 @@ export default function QuestCard({
     const rewardXP = REWARDS.BASE_XP + Math.min(streak, REWARDS.STREAK_XP_CAP);
     const rewardGold = REWARDS.BASE_GOLD;
 
+    const [isExpanded, setIsExpanded] = useState(false);
+
     return (
         <div
-            className={`quest-card ${isMainQuest ? 'main-quest' : ''} ${isCompleted ? 'opacity-60' : ''} p-4`}
+            className={`quest-card ${isMainQuest ? 'main-quest' : ''} ${isCompleted ? 'opacity-60' : ''} p-4 transition-all duration-300`}
         >
             {/* Quest Type Badge */}
             <div className="flex items-center justify-between mb-3">
@@ -82,14 +85,31 @@ export default function QuestCard({
             </div>
 
             {/* Quest Title */}
-            <Link href={`/habits/${habit.id}`}>
-                <h3
-                    className={`font-semibold text-lg mb-1 ${isCompleted ? 'line-through' : ''}`}
-                    style={{ color: isCompleted ? 'var(--foreground-muted)' : 'var(--foreground)' }}
-                >
-                    {habit.title}
-                </h3>
-            </Link>
+            <div className="flex justify-between items-start mb-1">
+                <Link href={`/habits/${habit.id}`} className="flex-1">
+                    <h3
+                        className={`font-semibold text-lg ${isCompleted ? 'line-through' : ''} hover:text-indigo-400 transition-colors`}
+                        style={{ color: isCompleted ? 'var(--foreground-muted)' : 'var(--foreground)' }}
+                    >
+                        {habit.title}
+                    </h3>
+                </Link>
+                {isMainQuest && (
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="p-1 rounded-full hover:bg-white/5 text-xs text-zinc-500 hover:text-zinc-300"
+                    >
+                        {isExpanded ? 'Hide Info' : 'Show Info'}
+                    </button>
+                )}
+            </div>
+
+            {/* Identity Badge */}
+            {isMainQuest && (
+                <p className="text-xs font-medium text-indigo-400 mb-2">
+                    Identity: &quot;{habit.identity}&quot;
+                </p>
+            )}
 
             {/* Easy Step */}
             <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--foreground-muted)' }}>
@@ -97,15 +117,39 @@ export default function QuestCard({
                 {habit.easy_step}
             </p>
 
+            {/* Expanded Details */}
+            {isExpanded && isMainQuest && (
+                <div className="mb-4 bg-black/20 rounded-lg p-3 space-y-2 text-sm border border-white/5">
+                    {habit.obvious_cue && (
+                        <div>
+                            <span className="text-zinc-400 text-xs uppercase tracking-wider block mb-0.5">When (Cue)</span>
+                            <span className="text-zinc-200">{habit.obvious_cue}</span>
+                        </div>
+                    )}
+                    {habit.attractive_bundle && (
+                        <div>
+                            <span className="text-zinc-400 text-xs uppercase tracking-wider block mb-0.5">Pair With (Bundle)</span>
+                            <span className="text-zinc-200">{habit.attractive_bundle}</span>
+                        </div>
+                    )}
+                    {habit.satisfying_reward && (
+                        <div>
+                            <span className="text-zinc-400 text-xs uppercase tracking-wider block mb-0.5">Real Life Reward</span>
+                            <span className="text-zinc-200">{habit.satisfying_reward}</span>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Rewards Preview */}
-            <div className="flex items-center gap-4 text-sm mb-4">
-                <span className="flex items-center gap-1 text-indigo-400">
+            <div className="flex items-center gap-4 text-sm mb-4 bg-white/5 p-2 rounded-lg">
+                <span className="flex items-center gap-1.5 text-indigo-400 font-medium">
                     <Sparkles className="w-4 h-4" />
                     +{rewardXP} XP
                 </span>
-                <span className="flex items-center gap-1 text-amber-500">
+                <span className="flex items-center gap-1.5 text-amber-500 font-medium">
                     <Coins className="w-4 h-4" />
-                    +{rewardGold}
+                    +{rewardGold} G
                 </span>
             </div>
 

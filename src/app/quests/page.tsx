@@ -293,6 +293,30 @@ export default function QuestsPage() {
                 </div>
             )}
 
+            {/* Main Quests (Habits) */}
+            {mainQuests.length > 0 && (
+                <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Star className="w-4 h-4 text-amber-500" />
+                        <h2 className="text-sm font-semibold text-amber-500 uppercase tracking-wider">
+                            Main Quests
+                        </h2>
+                    </div>
+                    <div className="space-y-3">
+                        {mainQuests.map(quest => (
+                            <QuestCard
+                                key={quest.id}
+                                habit={{ ...quest, quest_type: 'main' }}
+                                checkin={quest.checkin}
+                                streak={quest.streak}
+                                onComplete={() => handleComplete(quest)}
+                                onSkip={() => handleSkip(quest)}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Random Quests Section */}
             {randomQuests.length > 0 && (
                 <div className="mb-8">
@@ -319,30 +343,6 @@ export default function QuestsPage() {
                                 dailyQuest={quest}
                                 onComplete={() => handleCompleteRandomQuest(quest)}
                                 isLoading={completingQuestId === quest.id}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Main Quests (Habits) */}
-            {mainQuests.length > 0 && (
-                <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Star className="w-4 h-4 text-amber-500" />
-                        <h2 className="text-sm font-semibold text-amber-500 uppercase tracking-wider">
-                            Main Quests
-                        </h2>
-                    </div>
-                    <div className="space-y-3">
-                        {mainQuests.map(quest => (
-                            <QuestCard
-                                key={quest.id}
-                                habit={{ ...quest, quest_type: 'main' }}
-                                checkin={quest.checkin}
-                                streak={quest.streak}
-                                onComplete={() => handleComplete(quest)}
-                                onSkip={() => handleSkip(quest)}
                             />
                         ))}
                     </div>
