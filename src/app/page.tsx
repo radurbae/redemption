@@ -161,10 +161,10 @@ export default function ToDoPage() {
       {totalCount > 0 && (
         <div className="card p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-zinc-400">
+            <span className="text-sm font-medium" style={{ color: 'var(--foreground-muted)' }}>
               Progress
             </span>
-            <span className="text-sm font-semibold text-white dark:text-white light:text-gray-900">
+            <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
               {completedCount}/{totalCount}
             </span>
           </div>
@@ -192,7 +192,12 @@ export default function ToDoPage() {
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
             placeholder="Add a task..."
-            className="flex-1 px-4 py-3 rounded-xl bg-zinc-900 dark:bg-zinc-900 light:bg-gray-100 border border-zinc-800 dark:border-zinc-800 light:border-gray-200 text-white dark:text-white light:text-gray-900 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+            className="flex-1 px-4 py-3 rounded-xl border focus:outline-none focus:border-indigo-500"
+            style={{
+              background: 'var(--background-secondary)',
+              borderColor: 'var(--border)',
+              color: 'var(--foreground)',
+            }}
           />
           <button
             type="submit"
@@ -203,7 +208,7 @@ export default function ToDoPage() {
             <span className="hidden sm:inline">Add</span>
           </button>
         </div>
-        <p className="text-xs text-zinc-500 mt-2">
+        <p className="text-xs mt-2" style={{ color: 'var(--foreground-muted)' }}>
           Each task gives +{TASK_XP} XP, +{TASK_GOLD} Gold
         </p>
       </form>
@@ -219,10 +224,10 @@ export default function ToDoPage() {
         ) : tasks.length === 0 ? (
           <div className="card p-8 text-center">
             <div className="text-4xl mb-4">📝</div>
-            <h2 className="text-lg font-semibold text-white dark:text-white light:text-gray-900 mb-2">
+            <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
               No tasks yet
             </h2>
-            <p className="text-zinc-500 text-sm">
+            <p className="text-sm" style={{ color: 'var(--foreground-muted)' }}>
               Add your first task to start earning rewards!
             </p>
           </div>
@@ -232,26 +237,32 @@ export default function ToDoPage() {
               key={task.id}
               className={`flex items-center gap-3 p-4 rounded-xl transition-all ${task.completed
                 ? 'bg-green-500/10 border border-green-500/20'
-                : 'bg-zinc-900 dark:bg-zinc-900 light:bg-gray-100 border border-zinc-800 dark:border-zinc-800 light:border-gray-200'
+                : 'border'
                 }`}
+              style={!task.completed ? {
+                background: 'var(--background-secondary)',
+                borderColor: 'var(--border)'
+              } : undefined}
             >
               {/* Checkbox */}
               <button
                 onClick={() => handleToggleTask(task)}
                 className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all btn-press ${task.completed
                   ? 'bg-green-500 border-green-500 text-white'
-                  : 'border-zinc-600 hover:border-indigo-500'
+                  : 'hover:border-indigo-500'
                   }`}
+                style={!task.completed ? { borderColor: 'var(--border)' } : undefined}
               >
                 {task.completed && <Check className="w-4 h-4" />}
               </button>
 
               {/* Title */}
               <span
-                className={`flex-1 ${task.completed
-                  ? 'line-through text-zinc-500'
-                  : 'text-white dark:text-white light:text-gray-900'
-                  }`}
+                className="flex-1"
+                style={{
+                  color: task.completed ? 'var(--foreground-muted)' : 'var(--foreground)',
+                  textDecoration: task.completed ? 'line-through' : undefined,
+                }}
               >
                 {task.title}
               </span>
@@ -259,7 +270,8 @@ export default function ToDoPage() {
               {/* Delete */}
               <button
                 onClick={() => handleDeleteTask(task.id)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                style={{ color: 'var(--foreground-muted)' }}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
