@@ -23,12 +23,25 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
     const xpPercent = Math.min(100, Math.round((xpIntoLevel / xpNeeded) * 100));
     const isReady = xpPercent >= 100;
 
-    // Animate XP bar on mount
+    // Animate XP bar with visible progression
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setAnimatedPercent(xpPercent);
-        }, 100);
-        return () => clearTimeout(timer);
+        setAnimatedPercent(0); // Reset on change
+        const duration = 1500; // 1.5 seconds total
+        const steps = 60; // 60 fps
+        const increment = xpPercent / steps;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= xpPercent) {
+                setAnimatedPercent(xpPercent);
+                clearInterval(timer);
+            } else {
+                setAnimatedPercent(Math.round(current));
+            }
+        }, duration / steps);
+
+        return () => clearInterval(timer);
     }, [xpPercent]);
 
     // Get initials from email
