@@ -4,6 +4,7 @@ import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import IOSInstallBanner from "@/components/IOSInstallBanner";
 import { ToastProvider } from "@/components/Toast";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,9 +12,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "1% Better | Atomic Habits Tracker",
-  description: "Build atomic habits that stick using the 4 Laws of Behavior Change from James Clear's Atomic Habits.",
-  keywords: ["habits", "atomic habits", "habit tracker", "self improvement", "productivity"],
+  title: "1% Better | RPG Habit Tracker",
+  description: "Level up your life with gamified habits. Complete quests, earn XP, and unlock rewards.",
+  keywords: ["habits", "RPG", "gamification", "habit tracker", "self improvement", "productivity"],
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -32,7 +33,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#4f46e5",
+  themeColor: "#0a0a0f",
 };
 
 export default function RootLayout({
@@ -41,19 +42,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="1% Better" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ToastProvider>
-          <ServiceWorkerRegistration />
-          {children}
-          <IOSInstallBanner />
-        </ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <ServiceWorkerRegistration />
+            {children}
+            <IOSInstallBanner />
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

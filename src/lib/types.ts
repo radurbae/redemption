@@ -163,3 +163,14 @@ export const AVAILABLE_THEMES = [
   { name: 'aurora', rarity: 'legendary' as LootRarity },
 ];
 
+// Task type for To Do page
+export interface Task {
+  id: string;
+  user_id: string;
+  title: string;
+  completed: boolean;
+  date: string;
+  created_at: string;
+}
+
+

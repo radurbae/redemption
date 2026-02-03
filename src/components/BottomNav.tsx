@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sword, CalendarDays, Scroll, User } from 'lucide-react';
+import { ListTodo, CalendarDays, Scroll, User } from 'lucide-react';
 
 const navItems = [
-    { href: '/', label: 'Today', icon: Sword },
+    { href: '/', label: 'To Do', icon: ListTodo },
     { href: '/quests', label: 'Quests', icon: Scroll },
     { href: '/tracker', label: 'Tracker', icon: CalendarDays },
     { href: '/profile', label: 'Profile', icon: User },

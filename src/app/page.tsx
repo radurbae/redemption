@@ -1,100 +1,154 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AppShell from '@/components/AppShell';
-import HabitCard from '@/components/HabitCard';
-import { HabitCardSkeleton, ProgressSkeleton } from '@/components/Skeletons';
-import Link from 'next/link';
-import type { Habit, Checkin } from '@/lib/types';
+import { useToast } from '@/components/Toast';
+import { Plus, Check, Trash2, Sparkles, ListTodo } from 'lucide-react';
+import type { Task } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import { formatDate, getYesterdayDate } from '@/lib/utils/dates';
-import { shouldShowHabitOnDate } from '@/lib/utils/schedule';
-import { calculateStreak, shouldShowNeverMissTwiceWarning } from '@/lib/utils/streak';
+import { formatDate } from '@/lib/utils/dates';
+import { levelFromXp } from '@/lib/utils/rewards';
 
-interface HabitWithCheckin extends Habit {
-  checkin: Checkin | null;
-  streak: number;
-  showNeverMissTwice: boolean;
-}
+const TASK_XP = 5; // XP per task completion
+const TASK_GOLD = 3; // Gold per task completion
 
-export default function TodayPage() {
-  const [habits, setHabits] = useState<HabitWithCheckin[]>([]);
+export default function ToDoPage() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useToast();
   const today = formatDate(new Date());
-  const yesterday = getYesterdayDate();
 
-  const fetchData = useCallback(async () => {
+  const fetchTasks = useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) return;
 
-    // Fetch habits
-    const { data: habitsData } = await supabase
-      .from('habits')
+    const { data } = await supabase
+      .from('tasks')
       .select('*')
       .eq('user_id', user.id)
+      .eq('date', today)
       .order('created_at', { ascending: true });
 
-    if (!habitsData) {
-      setIsLoading(false);
+    setTasks(data || []);
+    setIsLoading(false);
+  }, [today]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
+
+  const handleAddTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+
+    setIsAdding(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      setIsAdding(false);
       return;
     }
 
-    // Filter to today's schedule
-    const todayHabits = habitsData.filter(h => shouldShowHabitOnDate(h, today));
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert({
+        user_id: user.id,
+        title: newTaskTitle.trim(),
+        date: today,
+      })
+      .select()
+      .single();
 
-    // Fetch checkins for today and yesterday
-    const { data: checkinsData } = await supabase
-      .from('checkins')
-      .select('*')
-      .eq('user_id', user.id)
-      .in('date', [today, yesterday]);
+    if (data && !error) {
+      setTasks(prev => [...prev, data]);
+      setNewTaskTitle('');
+      inputRef.current?.focus();
+    }
+    setIsAdding(false);
+  };
 
-    // Fetch all checkins for streak calculation
-    const { data: allCheckinsData } = await supabase
-      .from('checkins')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('date', formatDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)))
-      .order('date', { ascending: false });
+  const handleToggleTask = async (task: Task) => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    const checkins = checkinsData || [];
-    const allCheckins = allCheckinsData || [];
+    if (!user) return;
 
-    const enrichedHabits: HabitWithCheckin[] = todayHabits.map(habit => {
-      const todayCheckin = checkins.find(c => c.habit_id === habit.id && c.date === today) || null;
-      const yesterdayCheckin = checkins.find(c => c.habit_id === habit.id && c.date === yesterday) || null;
-      const habitCheckins = allCheckins.filter(c => c.habit_id === habit.id);
-      const streak = calculateStreak(habit, habitCheckins);
-      const showNeverMissTwice = shouldShowNeverMissTwiceWarning(habit, todayCheckin, yesterdayCheckin);
+    const newCompleted = !task.completed;
 
-      return {
-        ...habit,
-        checkin: todayCheckin,
-        streak,
-        showNeverMissTwice,
-      };
-    });
+    // Optimistic update
+    setTasks(prev => prev.map(t =>
+      t.id === task.id ? { ...t, completed: newCompleted } : t
+    ));
 
-    setHabits(enrichedHabits);
-    setIsLoading(false);
-  }, [today, yesterday]);
+    await supabase
+      .from('tasks')
+      .update({ completed: newCompleted })
+      .eq('id', task.id);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // Award XP/Gold on completion
+    if (newCompleted) {
+      const { data: profile } = await supabase
+        .from('player_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-  const completedCount = habits.filter(h => h.checkin?.status === 'done').length;
-  const totalCount = habits.length;
+      if (profile) {
+        const newXp = profile.xp + TASK_XP;
+        const newGold = profile.gold + TASK_GOLD;
+        const newLevel = levelFromXp(newXp);
+
+        await supabase
+          .from('player_profile')
+          .update({ xp: newXp, gold: newGold, level: newLevel })
+          .eq('user_id', user.id);
+
+        await supabase.from('reward_ledger').insert({
+          user_id: user.id,
+          habit_id: task.id, // Use task id
+          date: today,
+          xp_delta: TASK_XP,
+          gold_delta: TASK_GOLD,
+          reason: 'task_complete',
+        });
+
+        showToast(`+${TASK_XP} XP, +${TASK_GOLD} Gold`, 'success');
+      }
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const supabase = createClient();
+
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+
+    await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId);
+  };
+
+  const completedCount = tasks.filter(t => t.completed).length;
+  const totalCount = tasks.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <AppShell>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Today</h1>
-        <p className="text-gray-500 text-sm">
+        <div className="flex items-center gap-3 mb-1">
+          <ListTodo className="w-7 h-7 text-indigo-500" />
+          <h1 className="text-2xl font-bold text-white dark:text-white light:text-gray-900">
+            To Do
+          </h1>
+        </div>
+        <p className="text-zinc-500 dark:text-zinc-500 light:text-gray-500 text-sm">
           {new Date().toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'long',
@@ -104,58 +158,112 @@ export default function TodayPage() {
       </div>
 
       {/* Progress */}
-      {isLoading ? (
-        <ProgressSkeleton />
-      ) : totalCount > 0 ? (
+      {totalCount > 0 && (
         <div className="card p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-zinc-400">
               Progress
             </span>
-            <span className="text-sm font-semibold text-gray-900">
+            <span className="text-sm font-semibold text-white dark:text-white light:text-gray-900">
               {completedCount}/{totalCount}
             </span>
           </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="xp-bar-container">
             <div
-              className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+              className="xp-bar-fill"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
+          {progressPercent === 100 && (
+            <p className="text-green-500 text-xs mt-2 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              All tasks completed!
+            </p>
+          )}
         </div>
-      ) : null}
+      )}
 
-      {/* Habits list */}
-      <div className="space-y-4">
+      {/* Add Task Form */}
+      <form onSubmit={handleAddTask} className="mb-6">
+        <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            placeholder="Add a task..."
+            className="flex-1 px-4 py-3 rounded-xl bg-zinc-900 dark:bg-zinc-900 light:bg-gray-100 border border-zinc-800 dark:border-zinc-800 light:border-gray-200 text-white dark:text-white light:text-gray-900 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+          />
+          <button
+            type="submit"
+            disabled={isAdding || !newTaskTitle.trim()}
+            className="px-4 py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Add</span>
+          </button>
+        </div>
+        <p className="text-xs text-zinc-500 mt-2">
+          Each task gives +{TASK_XP} XP, +{TASK_GOLD} Gold
+        </p>
+      </form>
+
+      {/* Tasks List */}
+      <div className="space-y-2">
         {isLoading ? (
           <>
-            <HabitCardSkeleton />
-            <HabitCardSkeleton />
-            <HabitCardSkeleton />
+            <div className="skeleton h-14 rounded-xl" />
+            <div className="skeleton h-14 rounded-xl" />
+            <div className="skeleton h-14 rounded-xl" />
           </>
-        ) : habits.length === 0 ? (
+        ) : tasks.length === 0 ? (
           <div className="card p-8 text-center">
-            <div className="text-4xl mb-4">🎯</div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              No habits for today
+            <div className="text-4xl mb-4">📝</div>
+            <h2 className="text-lg font-semibold text-white dark:text-white light:text-gray-900 mb-2">
+              No tasks yet
             </h2>
-            <p className="text-gray-500 text-sm mb-6">
-              Create your first habit to start tracking
+            <p className="text-zinc-500 text-sm">
+              Add your first task to start earning rewards!
             </p>
-            <Link href="/new" className="btn-primary inline-block">
-              Create Habit
-            </Link>
           </div>
         ) : (
-          habits.map(habit => (
-            <HabitCard
-              key={habit.id}
-              habit={habit}
-              checkin={habit.checkin}
-              streak={habit.streak}
-              showNeverMissTwice={habit.showNeverMissTwice}
-              today={today}
-            />
+          tasks.map(task => (
+            <div
+              key={task.id}
+              className={`flex items-center gap-3 p-4 rounded-xl transition-all ${task.completed
+                ? 'bg-green-500/10 border border-green-500/20'
+                : 'bg-zinc-900 dark:bg-zinc-900 light:bg-gray-100 border border-zinc-800 dark:border-zinc-800 light:border-gray-200'
+                }`}
+            >
+              {/* Checkbox */}
+              <button
+                onClick={() => handleToggleTask(task)}
+                className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all btn-press ${task.completed
+                  ? 'bg-green-500 border-green-500 text-white'
+                  : 'border-zinc-600 hover:border-indigo-500'
+                  }`}
+              >
+                {task.completed && <Check className="w-4 h-4" />}
+              </button>
+
+              {/* Title */}
+              <span
+                className={`flex-1 ${task.completed
+                  ? 'line-through text-zinc-500'
+                  : 'text-white dark:text-white light:text-gray-900'
+                  }`}
+              >
+                {task.title}
+              </span>
+
+              {/* Delete */}
+              <button
+                onClick={() => handleDeleteTask(task.id)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           ))
         )}
       </div>
