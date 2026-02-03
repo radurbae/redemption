@@ -72,13 +72,6 @@ export default function StatCard({
                             }}
                         >
                             <Icon className="w-5 h-5" style={{ color }} />
-                            {/* Pulse animation for high stats */}
-                            {stat.value >= 80 && (
-                                <div
-                                    className="absolute inset-0 rounded-xl animate-ping opacity-20"
-                                    style={{ backgroundColor: color }}
-                                />
-                            )}
                         </div>
                         <div>
                             <p className="text-xs font-medium uppercase tracking-wider" style={{ color }}>
@@ -119,20 +112,15 @@ export default function StatCard({
                     </span>
                 </div>
 
-                {/* Progress Bar with animation */}
+                {/* Progress Bar */}
                 <div className="relative h-2 bg-zinc-800/50 rounded-full overflow-hidden mb-3">
                     <div
-                        className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out motion-safe:animate-pulse"
+                        className="absolute inset-y-0 left-0 rounded-full"
                         style={{
                             width: `${stat.value}%`,
                             background: `linear-gradient(90deg, ${color}, ${color}cc)`,
                             boxShadow: `0 0 8px ${color}60`,
                         }}
-                    />
-                    {/* Shimmer effect */}
-                    <div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent motion-safe:animate-shimmer"
-                        style={{ backgroundSize: '200% 100%' }}
                     />
                 </div>
 
