@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { PlayerProfile } from '@/lib/types';
 import type { TodaySummary } from '@/lib/utils/profileStats';
 import { getRankInfo } from '@/lib/utils/rewards';
@@ -12,6 +13,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ profile, email, todaySummary }: ProfileHeaderProps) {
     const rankInfo = getRankInfo(profile.rank || 'E');
+    const [animatedPercent, setAnimatedPercent] = useState(0);
 
     // Calculate XP progress
     const xpForCurrentLevel = 50 + (profile.level - 1) * 25;
@@ -19,6 +21,15 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
     const xpIntoLevel = profile.xp - (profile.level > 1 ? xpForCurrentLevel : 0);
     const xpNeeded = xpForNextLevel - xpForCurrentLevel;
     const xpPercent = Math.min(100, Math.round((xpIntoLevel / xpNeeded) * 100));
+    const isReady = xpPercent >= 100;
+
+    // Animate XP bar on mount
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setAnimatedPercent(xpPercent);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [xpPercent]);
 
     // Get initials from email
     const initials = email
@@ -26,24 +37,54 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
         : 'P1';
 
     return (
-        <div className="card p-5 mb-6">
+        <div
+            className="card p-5 mb-6 relative overflow-hidden"
+            style={{
+                boxShadow: isReady ? '0 0 30px rgba(251, 191, 36, 0.3)' : undefined,
+                borderColor: isReady ? 'rgba(251, 191, 36, 0.4)' : undefined,
+            }}
+        >
+            {/* Ready for level up glow overlay */}
+            {isReady && (
+                <div
+                    className="absolute inset-0 pointer-events-none animate-pulse"
+                    style={{
+                        background: 'radial-gradient(ellipse at center, rgba(251, 191, 36, 0.1) 0%, transparent 70%)',
+                    }}
+                />
+            )}
+
             {/* Top Row: Avatar, Level, Rank */}
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-4 mb-4 relative">
                 {/* Avatar */}
                 <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold"
+                    className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold relative"
                     style={{
                         background: 'linear-gradient(135deg, var(--primary), var(--accent-purple))',
                         color: 'white',
+                        boxShadow: '0 0 20px rgba(129, 140, 248, 0.3)',
                     }}
                 >
                     {initials}
+                    {/* Pulse ring for level up ready */}
+                    {isReady && (
+                        <div
+                            className="absolute inset-0 rounded-full animate-ping opacity-30"
+                            style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)' }}
+                        />
+                    )}
                 </div>
 
                 {/* Level & Rank */}
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>
+                        <span
+                            className="text-3xl font-bold"
+                            style={{
+                                color: 'var(--foreground)',
+                                textShadow: isReady ? '0 0 20px rgba(251, 191, 36, 0.5)' : undefined,
+                            }}
+                        >
                             Lv.{profile.level}
                         </span>
                         <span
@@ -56,6 +97,11 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                         >
                             Rank {profile.rank || 'E'}
                         </span>
+                        {isReady && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-500 animate-pulse">
+                                READY!
+                            </span>
+                        )}
                     </div>
                     <p className="text-sm truncate" style={{ color: 'var(--foreground-muted)' }}>
                         {email || 'Adventurer'}
@@ -66,7 +112,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                 <div className="text-right">
                     <div className="flex items-center gap-1 text-lg font-semibold text-yellow-500">
                         <span>🪙</span>
-                        <span>{profile.gold}</span>
+                        <span>{profile.gold.toLocaleString()}</span>
                     </div>
                 </div>
             </div>
@@ -74,37 +120,85 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
             {/* XP Bar */}
             <div className="mb-4">
                 <div className="flex items-center justify-between text-xs mb-1">
-                    <span style={{ color: 'var(--foreground-muted)' }}>XP Progress</span>
-                    <span style={{ color: 'var(--foreground)' }}>{xpPercent}% to Lv.{profile.level + 1}</span>
+                    <span style={{ color: 'var(--foreground-muted)' }}>Experience</span>
+                    <span style={{ color: isReady ? '#fbbf24' : 'var(--foreground)' }}>
+                        {isReady ? '🎉 Level Up Ready!' : `${xpPercent}% to Lv.${profile.level + 1}`}
+                    </span>
                 </div>
-                <div className="xp-bar-container">
+
+                {/* XP Bar Container */}
+                <div
+                    className="relative h-4 rounded-full overflow-hidden"
+                    style={{
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
+                    }}
+                >
+                    {/* Progress fill with animation */}
                     <div
-                        className="xp-bar-fill motion-safe:animate-pulse"
-                        style={{ width: `${xpPercent}%` }}
+                        className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
+                        style={{
+                            width: `${animatedPercent}%`,
+                            background: isReady
+                                ? 'linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24)'
+                                : 'linear-gradient(90deg, var(--primary), #a855f7)',
+                            backgroundSize: '200% 100%',
+                            animation: isReady ? 'xp-shimmer 1.5s ease-in-out infinite' : undefined,
+                            boxShadow: isReady
+                                ? '0 0 15px rgba(251, 191, 36, 0.6)'
+                                : '0 0 10px rgba(129, 140, 248, 0.4)',
+                        }}
                     />
+
+                    {/* Shimmer overlay */}
+                    <div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
+                        style={{ backgroundSize: '200% 100%' }}
+                    />
+
+                    {/* Sparkles when ready */}
+                    {isReady && (
+                        <>
+                            <div className="absolute top-1 left-1/4 w-1 h-1 bg-white rounded-full animate-ping" />
+                            <div className="absolute top-2 left-1/2 w-1 h-1 bg-white rounded-full animate-ping delay-100" />
+                            <div className="absolute top-1 left-3/4 w-1 h-1 bg-white rounded-full animate-ping delay-200" />
+                        </>
+                    )}
                 </div>
-                <p className="text-xs mt-1" style={{ color: 'var(--foreground-muted)' }}>
-                    {profile.xp} / {xpForNextLevel} XP
-                </p>
+
+                {/* XP Numbers */}
+                <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>
+                        {profile.xp.toLocaleString()} XP
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>
+                        {xpForNextLevel.toLocaleString()} XP
+                    </p>
+                </div>
             </div>
 
             {/* Today Summary */}
             <div
-                className="flex items-center justify-center gap-3 py-2 px-4 rounded-lg text-sm"
+                className="flex items-center justify-center gap-4 py-2.5 px-4 rounded-xl text-sm"
                 style={{ background: 'var(--background-secondary)' }}
             >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                     <span>⚔️</span>
                     <span style={{ color: 'var(--foreground)' }}>
-                        Quests: {todaySummary.questsCompleted}/{todaySummary.questsTotal}
+                        <strong>{todaySummary.questsCompleted}</strong>/{todaySummary.questsTotal}
                     </span>
+                    <span className="text-xs" style={{ color: 'var(--foreground-muted)' }}>Quests</span>
                 </div>
-                <span style={{ color: 'var(--foreground-muted)' }}>•</span>
-                <div className="flex items-center gap-1">
+                <div
+                    className="w-px h-4"
+                    style={{ background: 'var(--border-color)' }}
+                />
+                <div className="flex items-center gap-1.5">
                     <span>📋</span>
                     <span style={{ color: 'var(--foreground)' }}>
-                        Habits: {todaySummary.habitsCompleted}/{todaySummary.habitsTotal}
+                        <strong>{todaySummary.habitsCompleted}</strong>/{todaySummary.habitsTotal}
                     </span>
+                    <span className="text-xs" style={{ color: 'var(--foreground-muted)' }}>Habits</span>
                 </div>
             </div>
         </div>
