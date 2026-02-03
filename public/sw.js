@@ -1,14 +1,22 @@
-const CACHE_NAME = 'one-percent-better-v1';
+const CACHE_NAME = 'one-percent-better-v2';
 const OFFLINE_URL = '/offline';
 
 // Static assets to cache immediately
 const STATIC_ASSETS = [
     '/',
     '/offline',
+    '/quests',
+    '/login',
     '/manifest.webmanifest',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',
     '/icons/apple-touch-icon.png',
+];
+
+// API endpoints to cache with stale-while-revalidate
+const SWR_PATTERNS = [
+    /\/_next\/static\//,
+    /\/fonts\//,
 ];
 
 // Install event - cache static assets
@@ -35,7 +43,43 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch event - network first for dynamic, cache first for static
+// Helper: Stale-while-revalidate strategy
+async function staleWhileRevalidate(request) {
+    const cache = await caches.open(CACHE_NAME);
+    const cachedResponse = await cache.match(request);
+
+    // Start network fetch in background
+    const networkPromise = fetch(request).then((response) => {
+        if (response.ok) {
+            cache.put(request, response.clone());
+        }
+        return response;
+    }).catch(() => null);
+
+    // Return cached immediately if available, otherwise wait for network
+    return cachedResponse || networkPromise;
+}
+
+// Helper: Network first with cache fallback
+async function networkFirst(request) {
+    try {
+        const response = await fetch(request);
+        if (response.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(request, response.clone());
+        }
+        return response;
+    } catch {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        if (request.mode === 'navigate') {
+            return caches.match(OFFLINE_URL);
+        }
+        return new Response('Offline', { status: 503 });
+    }
+}
+
+// Fetch event
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
@@ -51,52 +95,36 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Static assets: cache first
+    // Static assets: stale-while-revalidate
     if (
         url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2)$/) ||
         url.pathname.startsWith('/icons/') ||
-        url.pathname.startsWith('/_next/static/')
+        url.pathname.startsWith('/_next/static/') ||
+        SWR_PATTERNS.some(pattern => pattern.test(url.pathname))
     ) {
-        event.respondWith(
-            caches.match(request).then((cached) => {
-                if (cached) return cached;
-                return fetch(request).then((response) => {
-                    if (response.ok) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(request, clone);
-                        });
-                    }
-                    return response;
-                });
-            })
-        );
+        event.respondWith(staleWhileRevalidate(request));
         return;
     }
 
-    // HTML pages: network first with offline fallback
-    event.respondWith(
-        fetch(request)
-            .then((response) => {
-                // Cache successful HTML responses
-                if (response.ok && request.headers.get('accept')?.includes('text/html')) {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(request, clone);
-                    });
-                }
-                return response;
-            })
-            .catch(() => {
-                // Try to return cached version
-                return caches.match(request).then((cached) => {
-                    if (cached) return cached;
-                    // Return offline page for navigation requests
-                    if (request.mode === 'navigate') {
-                        return caches.match(OFFLINE_URL);
-                    }
-                    return new Response('Offline', { status: 503 });
-                });
-            })
-    );
+    // App shell pages: stale-while-revalidate for faster perceived load
+    if (
+        url.pathname === '/' ||
+        url.pathname === '/quests' ||
+        url.pathname === '/profile' ||
+        url.pathname === '/tracker' ||
+        url.pathname === '/battle'
+    ) {
+        event.respondWith(staleWhileRevalidate(request));
+        return;
+    }
+
+    // Other HTML pages: network first with offline fallback
+    event.respondWith(networkFirst(request));
+});
+
+// Background sync for offline actions (future enhancement)
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-checkins') {
+        // Handle offline checkin sync
+    }
 });

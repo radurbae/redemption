@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import AppShell from '@/components/AppShell';
 import QuestCard from '@/components/QuestCard';
 import RandomQuestCard from '@/components/RandomQuestCard';
-import LevelUpModal from '@/components/LevelUpModal';
-import LootDropModal from '@/components/LootDropModal';
 import { useToast } from '@/components/Toast';
 import { Sword, Star, Shuffle, RefreshCw } from 'lucide-react';
 import type { Habit, Checkin, Loot, PlayerProfile, DailyQuest } from '@/lib/types';
@@ -15,6 +14,11 @@ import { shouldShowHabitOnDate } from '@/lib/utils/schedule';
 import { calculateStreak } from '@/lib/utils/streak';
 import { calculateRewards, levelFromXp, rollForLoot } from '@/lib/utils/rewards';
 import { getDailyQuests, completeDailyQuest, refreshDailyQuests, type YesterdayEvaluation } from '@/lib/utils/quests';
+
+// Dynamic imports for modals (reduces initial bundle)
+const LevelUpModal = dynamic(() => import('@/components/LevelUpModal'), { ssr: false });
+const LootDropModal = dynamic(() => import('@/components/LootDropModal'), { ssr: false });
+
 
 interface QuestHabit extends Habit {
     checkin: Checkin | null;
