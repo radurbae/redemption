@@ -27,6 +27,16 @@ create table public.daily_quests (
   unique (user_id, quest_id, date)
 );
 
+-- Track daily refresh usage per user
+create table public.quest_refresh_tracker (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  date date not null default current_date,
+  refreshed boolean not null default false,
+  refreshed_at timestamptz,
+  unique (user_id, date)
+);
+
 -- Indexes
 create index daily_quests_user_date_idx on public.daily_quests(user_id, date);
 create index quest_pool_category_idx on public.quest_pool(category);
@@ -34,6 +44,7 @@ create index quest_pool_category_idx on public.quest_pool(category);
 -- Enable RLS
 alter table public.quest_pool enable row level security;
 alter table public.daily_quests enable row level security;
+alter table public.quest_refresh_tracker enable row level security;
 
 -- Quest pool is readable by everyone (it's shared content)
 create policy "Quest pool is viewable by authenticated users"
@@ -52,6 +63,23 @@ create policy "Users can insert own daily quests"
 
 create policy "Users can update own daily quests"
   on public.daily_quests for update
+  using (auth.uid() = user_id);
+
+create policy "Users can delete own daily quests"
+  on public.daily_quests for delete
+  using (auth.uid() = user_id);
+
+-- Quest refresh tracker policies
+create policy "Users can view own refresh tracker"
+  on public.quest_refresh_tracker for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own refresh tracker"
+  on public.quest_refresh_tracker for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own refresh tracker"
+  on public.quest_refresh_tracker for update
   using (auth.uid() = user_id);
 
 -- =====================================================

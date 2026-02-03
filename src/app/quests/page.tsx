@@ -205,9 +205,14 @@ export default function QuestsPage() {
 
     const handleRefreshRandomQuests = async () => {
         setIsRefreshing(true);
-        const newQuests = await refreshDailyQuests();
-        setRandomQuests(newQuests);
-        showToast('New quests generated!', 'success');
+        const { quests: newQuests, alreadyRefreshed } = await refreshDailyQuests();
+
+        if (alreadyRefreshed) {
+            showToast('You can only refresh once per day!', 'error');
+        } else {
+            setRandomQuests(newQuests);
+            showToast('New quests generated!', 'success');
+        }
         setIsRefreshing(false);
     };
 

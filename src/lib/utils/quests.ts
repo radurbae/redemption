@@ -236,15 +236,56 @@ export async function completeDailyQuest(questId: string): Promise<{ xp: number;
 }
 
 /**
- * Refresh daily quests (admin/debug function).
+ * Check if user can refresh quests today.
  */
-export async function refreshDailyQuests(): Promise<DailyQuest[]> {
+export async function canRefreshToday(): Promise<boolean> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) return [];
+    if (!user) return false;
 
     const today = formatDate(new Date());
+
+    const { data: tracker } = await supabase
+        .from('quest_refresh_tracker')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .single();
+
+    return !tracker?.refreshed;
+}
+
+/**
+ * Refresh daily quests (allowed once per day).
+ * Returns null if already refreshed today.
+ */
+export async function refreshDailyQuests(): Promise<{ quests: DailyQuest[]; alreadyRefreshed: boolean }> {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { quests: [], alreadyRefreshed: false };
+
+    const today = formatDate(new Date());
+
+    // Check if already refreshed today
+    const { data: tracker } = await supabase
+        .from('quest_refresh_tracker')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .single();
+
+    if (tracker?.refreshed) {
+        // Already used refresh today
+        const { data: existingQuests } = await supabase
+            .from('daily_quests')
+            .select(`*, quest:quest_pool(*)`)
+            .eq('user_id', user.id)
+            .eq('date', today);
+
+        return { quests: existingQuests || [], alreadyRefreshed: true };
+    }
 
     // Delete existing quests for today
     await supabase
@@ -253,6 +294,18 @@ export async function refreshDailyQuests(): Promise<DailyQuest[]> {
         .eq('user_id', user.id)
         .eq('date', today);
 
-    // Generate new ones
-    return await generateDailyQuests(user.id, today);
+    // Mark as refreshed
+    await supabase
+        .from('quest_refresh_tracker')
+        .upsert({
+            user_id: user.id,
+            date: today,
+            refreshed: true,
+            refreshed_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,date' });
+
+    // Generate new quests
+    const quests = await generateDailyQuests(user.id, today);
+
+    return { quests, alreadyRefreshed: false };
 }
