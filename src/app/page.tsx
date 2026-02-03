@@ -144,11 +144,11 @@ export default function ToDoPage() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
           <ListTodo className="w-7 h-7 text-indigo-500" />
-          <h1 className="text-2xl font-bold text-white dark:text-white light:text-gray-900">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
             To Do
           </h1>
         </div>
-        <p className="text-zinc-500 dark:text-zinc-500 light:text-gray-500 text-sm">
+        <p className="text-sm" style={{ color: 'var(--foreground-muted)' }}>
           {new Date().toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'long',

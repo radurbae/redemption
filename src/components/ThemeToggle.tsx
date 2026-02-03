@@ -4,7 +4,16 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 export default function ThemeToggle() {
-    const { theme, toggleTheme } = useTheme();
+    let theme = 'dark';
+    let toggleTheme = () => { };
+
+    try {
+        const themeContext = useTheme();
+        theme = themeContext.theme;
+        toggleTheme = themeContext.toggleTheme;
+    } catch {
+        // ThemeProvider not available during SSR
+    }
 
     return (
         <button

@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Plus } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 const navItems = [
-    { href: '/', label: 'Today' },
+    { href: '/', label: 'To Do' },
     { href: '/quests', label: 'Quests' },
     { href: '/tracker', label: 'Tracker' },
     { href: '/inventory', label: 'Inventory' },
@@ -17,10 +18,18 @@ export default function TopNav() {
 
     return (
         <header
-            className="hidden md:block fixed top-0 left-0 right-0 bg-zinc-900/95 backdrop-blur-lg border-b border-zinc-800 z-40"
+            className="hidden md:block fixed top-0 left-0 right-0 backdrop-blur-lg border-b z-40"
+            style={{
+                background: 'var(--card-bg)',
+                borderColor: 'var(--border-color)',
+            }}
         >
-            <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 font-bold text-lg text-white">
+            <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+                <Link
+                    href="/"
+                    className="flex items-center gap-2 font-bold text-lg"
+                    style={{ color: 'var(--foreground)' }}
+                >
                     <span className="text-xl">⚔️</span>
                     <span>1% Better</span>
                 </Link>
@@ -37,9 +46,10 @@ export default function TopNav() {
                   px-4 py-2 rounded-lg text-sm font-medium transition-colors
                   ${isActive
                                         ? 'text-indigo-400 bg-indigo-500/10'
-                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                        : ''
                                     }
                 `}
+                                style={!isActive ? { color: 'var(--foreground-muted)' } : undefined}
                                 aria-current={isActive ? 'page' : undefined}
                             >
                                 {item.label}
@@ -47,13 +57,16 @@ export default function TopNav() {
                         );
                     })}
 
-                    <Link
-                        href="/new"
-                        className="ml-2 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-colors flex items-center gap-1"
-                    >
-                        <Plus className="w-4 h-4" />
-                        New
-                    </Link>
+                    <div className="ml-2 flex items-center gap-2">
+                        <ThemeToggle />
+                        <Link
+                            href="/new"
+                            className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-colors flex items-center gap-1"
+                        >
+                            <Plus className="w-4 h-4" />
+                            New
+                        </Link>
+                    </div>
                 </nav>
             </div>
         </header>
