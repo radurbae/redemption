@@ -15,13 +15,21 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
     const rankInfo = getRankInfo(profile.rank || 'E');
     const [animatedPercent, setAnimatedPercent] = useState(0);
 
-    // Calculate XP progress
-    const xpForCurrentLevel = 50 + (profile.level - 1) * 25;
-    const xpForNextLevel = 50 + profile.level * 25;
-    const xpIntoLevel = profile.xp - (profile.level > 1 ? xpForCurrentLevel : 0);
-    const xpNeeded = xpForNextLevel - xpForCurrentLevel;
-    const xpPercent = Math.min(100, Math.round((xpIntoLevel / xpNeeded) * 100));
-    const isReady = xpPercent >= 100;
+    // Calculate XP progress using same formula as rewards.ts
+    // xpRequiredForLevel(level) = 50 + level * 25
+    // Total XP for levels 1 to N is cumulative
+    const xpRequiredForLevel = (level: number) => 50 + level * 25;
+
+    // XP already spent on previous levels
+    let xpSpent = 0;
+    for (let l = 1; l < profile.level; l++) {
+        xpSpent += xpRequiredForLevel(l);
+    }
+
+    const xpForThisLevel = xpRequiredForLevel(profile.level);
+    const xpIntoLevel = profile.xp - xpSpent;
+    const xpPercent = Math.min(100, Math.max(0, Math.round((xpIntoLevel / xpForThisLevel) * 100)));
+    const isReady = xpIntoLevel >= xpForThisLevel;
 
     // Animate XP bar with visible progression
     useEffect(() => {
@@ -185,7 +193,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                         {profile.xp.toLocaleString()} XP
                     </p>
                     <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>
-                        {xpForNextLevel.toLocaleString()} XP
+                        {(xpSpent + xpForThisLevel).toLocaleString()} XP
                     </p>
                 </div>
             </div>
