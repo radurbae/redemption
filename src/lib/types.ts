@@ -173,4 +173,48 @@ export interface Task {
   created_at: string;
 }
 
+// Random Quest System
+export type QuestCategory = 'wellness' | 'productivity' | 'social' | 'learning' | 'fitness' | 'creativity';
+export type QuestDifficulty = 'easy' | 'normal' | 'hard';
 
+export interface QuestPoolItem {
+  id: string;
+  title: string;
+  description: string | null;
+  category: QuestCategory;
+  difficulty: QuestDifficulty;
+  xp_reward: number;
+  gold_reward: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface DailyQuest {
+  id: string;
+  user_id: string;
+  quest_id: string;
+  date: string;
+  completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  // Joined from quest_pool
+  quest?: QuestPoolItem;
+}
+
+export const QUEST_CATEGORY_ICONS: Record<QuestCategory, string> = {
+  wellness: '💚',
+  productivity: '⚡',
+  social: '👥',
+  learning: '📚',
+  fitness: '💪',
+  creativity: '🎨',
+};
+
+export const QUEST_CATEGORY_COLORS: Record<QuestCategory, string> = {
+  wellness: '#22c55e',
+  productivity: '#f59e0b',
+  social: '#ec4899',
+  learning: '#3b82f6',
+  fitness: '#ef4444',
+  creativity: '#a855f7',
+};

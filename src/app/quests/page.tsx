@@ -3,16 +3,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import AppShell from '@/components/AppShell';
 import QuestCard from '@/components/QuestCard';
+import RandomQuestCard from '@/components/RandomQuestCard';
 import LevelUpModal from '@/components/LevelUpModal';
 import LootDropModal from '@/components/LootDropModal';
 import { useToast } from '@/components/Toast';
-import { Sword, Star } from 'lucide-react';
-import type { Habit, Checkin, Loot, PlayerProfile } from '@/lib/types';
+import { Sword, Star, Shuffle, RefreshCw } from 'lucide-react';
+import type { Habit, Checkin, Loot, PlayerProfile, DailyQuest } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { formatDate, getYesterdayDate } from '@/lib/utils/dates';
 import { shouldShowHabitOnDate } from '@/lib/utils/schedule';
 import { calculateStreak } from '@/lib/utils/streak';
 import { calculateRewards, levelFromXp, rollForLoot } from '@/lib/utils/rewards';
+import { getDailyQuests, completeDailyQuest, refreshDailyQuests } from '@/lib/utils/quests';
 
 interface QuestHabit extends Habit {
     checkin: Checkin | null;
@@ -21,8 +23,11 @@ interface QuestHabit extends Habit {
 
 export default function QuestsPage() {
     const [quests, setQuests] = useState<QuestHabit[]>([]);
+    const [randomQuests, setRandomQuests] = useState<DailyQuest[]>([]);
     const [profile, setProfile] = useState<PlayerProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [completingQuestId, setCompletingQuestId] = useState<string | null>(null);
     const [showLevelUp, setShowLevelUp] = useState(false);
     const [newLevel, setNewLevel] = useState(1);
     const [lootDrop, setLootDrop] = useState<Loot | null>(null);
@@ -64,7 +69,11 @@ export default function QuestsPage() {
             return { ...habit, checkin: todayCheckin, streak };
         });
 
+        // Fetch random quests
+        const daily = await getDailyQuests();
+
         setQuests(enrichedQuests);
+        setRandomQuests(daily);
         setProfile(profileData || null);
         setIsLoading(false);
     }, [today, yesterday]);
@@ -176,9 +185,34 @@ export default function QuestsPage() {
         fetchData();
     };
 
+    const handleCompleteRandomQuest = async (dailyQuest: DailyQuest) => {
+        setCompletingQuestId(dailyQuest.id);
+        const result = await completeDailyQuest(dailyQuest.id);
+
+        if (result) {
+            showToast(`+${result.xp} XP, +${result.gold} Gold`, 'success');
+            // Refresh to get updated quest status
+            const updated = await getDailyQuests();
+            setRandomQuests(updated);
+        }
+
+        setCompletingQuestId(null);
+    };
+
+    const handleRefreshRandomQuests = async () => {
+        setIsRefreshing(true);
+        const newQuests = await refreshDailyQuests();
+        setRandomQuests(newQuests);
+        showToast('New quests generated!', 'success');
+        setIsRefreshing(false);
+    };
+
     const mainQuests = quests.filter(q => q.quest_type === 'main' || quests.indexOf(q) < 3);
     const sideQuests = quests.filter(q => !mainQuests.includes(q));
-    const completedCount = quests.filter(q => q.checkin?.status === 'done').length;
+    const habitCompletedCount = quests.filter(q => q.checkin?.status === 'done').length;
+    const randomCompletedCount = randomQuests.filter(q => q.completed).length;
+    const totalCompleted = habitCompletedCount + randomCompletedCount;
+    const totalQuests = quests.length + randomQuests.length;
 
     if (isLoading) {
         return (
@@ -196,29 +230,61 @@ export default function QuestsPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Daily Quests</h1>
-                    <p className="text-zinc-400 text-sm">
-                        {completedCount}/{quests.length} completed
+                    <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Daily Quests</h1>
+                    <p style={{ color: 'var(--foreground-muted)' }} className="text-sm">
+                        {totalCompleted}/{totalQuests} completed
                     </p>
                 </div>
                 <div className="text-right">
-                    <p className="text-xs text-zinc-500">Today</p>
-                    <p className="text-sm text-zinc-300">
+                    <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>Today</p>
+                    <p className="text-sm" style={{ color: 'var(--foreground)' }}>
                         {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                     </p>
                 </div>
             </div>
 
             {/* Daily Clear Banner */}
-            {completedCount === quests.length && quests.length > 0 && (
+            {totalCompleted === totalQuests && totalQuests > 0 && (
                 <div className="card p-4 mb-6 text-center border-green-500/30 bg-green-500/10">
                     <span className="text-2xl mb-2 block">🏆</span>
                     <p className="font-semibold text-green-500">Daily Clear!</p>
-                    <p className="text-xs text-zinc-400">All quests completed</p>
+                    <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>All quests completed</p>
                 </div>
             )}
 
-            {/* Main Quests */}
+            {/* Random Quests Section */}
+            {randomQuests.length > 0 && (
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Shuffle className="w-4 h-4 text-purple-500" />
+                            <h2 className="text-sm font-semibold text-purple-500 uppercase tracking-wider">
+                                Random Quests
+                            </h2>
+                        </div>
+                        <button
+                            onClick={handleRefreshRandomQuests}
+                            disabled={isRefreshing}
+                            className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg text-purple-400 hover:bg-purple-500/10 transition-colors disabled:opacity-50"
+                        >
+                            <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                            Refresh
+                        </button>
+                    </div>
+                    <div className="space-y-3">
+                        {randomQuests.map(quest => (
+                            <RandomQuestCard
+                                key={quest.id}
+                                dailyQuest={quest}
+                                onComplete={() => handleCompleteRandomQuest(quest)}
+                                isLoading={completingQuestId === quest.id}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Main Quests (Habits) */}
             {mainQuests.length > 0 && (
                 <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
@@ -246,8 +312,8 @@ export default function QuestsPage() {
             {sideQuests.length > 0 && (
                 <div>
                     <div className="flex items-center gap-2 mb-3">
-                        <Sword className="w-4 h-4 text-zinc-500" />
-                        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">
+                        <Sword className="w-4 h-4" style={{ color: 'var(--foreground-muted)' }} />
+                        <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--foreground-muted)' }}>
                             Side Quests
                         </h2>
                     </div>
@@ -267,11 +333,11 @@ export default function QuestsPage() {
             )}
 
             {/* Empty State */}
-            {quests.length === 0 && (
+            {quests.length === 0 && randomQuests.length === 0 && (
                 <div className="card p-8 text-center">
                     <span className="text-4xl mb-4 block">⚔️</span>
-                    <h3 className="text-lg font-semibold text-white mb-2">No quests today</h3>
-                    <p className="text-zinc-400 text-sm">
+                    <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--foreground)' }}>No quests today</h3>
+                    <p className="text-sm" style={{ color: 'var(--foreground-muted)' }}>
                         Create habits to start your adventure!
                     </p>
                 </div>
