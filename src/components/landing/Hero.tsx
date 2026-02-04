@@ -44,6 +44,12 @@ export default function Hero() {
                             Try Demo
                         </SoundLink>
                     </div>
+                    <SoundLink
+                        href="/login"
+                        className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                    >
+                        Already have an account? Login
+                    </SoundLink>
                     <ul className="grid gap-2 text-sm text-[var(--foreground-muted)]">
                         <li className="flex items-center gap-2">
                             <ShieldCheck className="h-4 w-4 text-[var(--success)]" />

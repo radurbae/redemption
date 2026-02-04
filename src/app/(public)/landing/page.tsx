@@ -124,6 +124,9 @@ export default function LandingPage() {
                             <SoundLink href="/demo" className="btn-secondary btn-press hidden text-sm sm:inline-flex">
                                 Demo
                             </SoundLink>
+                            <SoundLink href="/login" className="btn-secondary btn-press hidden text-sm sm:inline-flex">
+                                Login
+                            </SoundLink>
                             <SoundLink href="/login" className="btn-primary btn-press text-sm">
                                 Start Free
                             </SoundLink>
