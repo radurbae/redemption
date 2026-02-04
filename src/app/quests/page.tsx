@@ -33,6 +33,7 @@ export default function QuestsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [completingQuestId, setCompletingQuestId] = useState<string | null>(null);
+    const [completingHabitId, setCompletingHabitId] = useState<string | null>(null);
     const [showLevelUp, setShowLevelUp] = useState(false);
     const [newLevel, setNewLevel] = useState(1);
     const [lootDrop, setLootDrop] = useState<Loot | null>(null);
@@ -92,89 +93,117 @@ export default function QuestsPage() {
 
     const handleComplete = async (quest: QuestHabit) => {
         if (!profile) return;
+        if (quest.checkin?.status === 'done') return;
+
+        setCompletingHabitId(quest.id);
 
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+            setCompletingHabitId(null);
+            return;
+        }
 
-        // Upsert checkin
-        await supabase.from('checkins').upsert({
-            user_id: user.id,
+        const optimisticCheckin: Checkin = {
+            id: `temp-${quest.id}`,
+            user_id: quest.user_id,
             habit_id: quest.id,
             date: today,
             status: 'done',
-        }, { onConflict: 'user_id,habit_id,date' });
+            created_at: new Date().toISOString(),
+        };
 
-        // Calculate rewards
-        const completedCount = quests.filter(q => q.checkin?.status === 'done').length + 1;
-        const scheduledCount = quests.length;
-        const isDailyCleared = completedCount === scheduledCount;
+        setQuests(prev => prev.map(q => (
+            q.id === quest.id ? { ...q, checkin: optimisticCheckin } : q
+        )));
 
-        const rewards = calculateRewards({
-            streak: quest.streak,
-            isDailyCleared,
-        });
-
-        // Update profile
-        const newXp = profile.xp + rewards.xp;
-        const newGold = profile.gold + rewards.gold;
-        const oldLevel = profile.level;
-        const calculatedLevel = levelFromXp(newXp);
-
-        await supabase.from('player_profile').update({
-            xp: newXp,
-            gold: newGold,
-            level: calculatedLevel,
-        }).eq('user_id', user.id);
-
-        // Record in ledger
-        await supabase.from('reward_ledger').upsert({
-            user_id: user.id,
-            habit_id: quest.id,
-            date: today,
-            xp_delta: rewards.xp,
-            gold_delta: rewards.gold,
-            reason: 'quest_complete',
-        }, { onConflict: 'user_id,habit_id,date,reason' });
-
-        // Update daily summary
-        await supabase.from('daily_summary').upsert({
-            user_id: user.id,
-            date: today,
-            completed_count: completedCount,
-            scheduled_count: scheduledCount,
-            cleared: isDailyCleared,
-        }, { onConflict: 'user_id,date' });
-
-        // Check for level up
-        if (calculatedLevel > oldLevel) {
-            setNewLevel(calculatedLevel);
-            setShowLevelUp(true);
-        }
-
-        // Roll for loot
-        const { data: existingLoot } = await supabase.from('loot').select('type, name').eq('user_id', user.id);
-        const lootKeys = existingLoot?.map(l => `${l.type}:${l.name}`) || [];
-        const drop = rollForLoot(lootKeys);
-
-        if (drop) {
-            const { data: newLoot } = await supabase.from('loot').insert({
+        try {
+            // Upsert checkin
+            await supabase.from('checkins').upsert({
                 user_id: user.id,
-                type: drop.type,
-                name: drop.name,
-                rarity: drop.rarity,
-            }).select().single();
+                habit_id: quest.id,
+                date: today,
+                status: 'done',
+            }, { onConflict: 'user_id,habit_id,date' });
 
-            if (newLoot) {
-                setLootDrop(newLoot);
+            // Calculate rewards
+            const completedCount = quests.filter(q => q.checkin?.status === 'done').length + 1;
+            const scheduledCount = quests.length;
+            const isDailyCleared = completedCount === scheduledCount;
+
+            const rewards = calculateRewards({
+                streak: quest.streak,
+                isDailyCleared,
+            });
+
+            // Update profile
+            const newXp = profile.xp + rewards.xp;
+            const newGold = profile.gold + rewards.gold;
+            const oldLevel = profile.level;
+            const calculatedLevel = levelFromXp(newXp);
+
+            // Fire independent updates in parallel
+            const lootPromise = supabase.from('loot').select('type, name').eq('user_id', user.id);
+
+            await Promise.all([
+                supabase.from('player_profile').update({
+                    xp: newXp,
+                    gold: newGold,
+                    level: calculatedLevel,
+                }).eq('user_id', user.id),
+                supabase.from('reward_ledger').upsert({
+                    user_id: user.id,
+                    habit_id: quest.id,
+                    date: today,
+                    xp_delta: rewards.xp,
+                    gold_delta: rewards.gold,
+                    reason: 'quest_complete',
+                }, { onConflict: 'user_id,habit_id,date,reason' }),
+                supabase.from('daily_summary').upsert({
+                    user_id: user.id,
+                    date: today,
+                    completed_count: completedCount,
+                    scheduled_count: scheduledCount,
+                    cleared: isDailyCleared,
+                }, { onConflict: 'user_id,date' }),
+            ]);
+
+            // Check for level up
+            if (calculatedLevel > oldLevel) {
+                setNewLevel(calculatedLevel);
+                setShowLevelUp(true);
             }
+
+            // Roll for loot
+            const { data: existingLoot } = await lootPromise;
+            const lootKeys = existingLoot?.map(l => `${l.type}:${l.name}`) || [];
+            const drop = rollForLoot(lootKeys);
+
+            if (drop) {
+                const { data: newLoot } = await supabase.from('loot').insert({
+                    user_id: user.id,
+                    type: drop.type,
+                    name: drop.name,
+                    rarity: drop.rarity,
+                }).select().single();
+
+                if (newLoot) {
+                    setLootDrop(newLoot);
+                }
+            }
+
+            // Show toast
+            showToast(`+${rewards.xp} XP, +${rewards.gold} Gold`, 'success');
+
+            // Refresh data
+            fetchData();
+        } catch (err) {
+            console.error('Quest completion failed:', err);
+            showToast('Failed to complete quest. Please try again.', 'error');
+            fetchData();
+        } finally {
+            setCompletingHabitId(null);
         }
-
-        // Show toast
-        showToast(`+${rewards.xp} XP, +${rewards.gold} Gold`, 'success');
-
-        // Refresh data
-        fetchData();
     };
 
     const handleSkip = async (quest: QuestHabit) => {
@@ -182,15 +211,36 @@ export default function QuestsPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        await supabase.from('checkins').upsert({
-            user_id: user.id,
+        setCompletingHabitId(quest.id);
+        const optimisticCheckin: Checkin = {
+            id: `temp-skip-${quest.id}`,
+            user_id: quest.user_id,
             habit_id: quest.id,
             date: today,
             status: 'skipped',
-        }, { onConflict: 'user_id,habit_id,date' });
+            created_at: new Date().toISOString(),
+        };
+        setQuests(prev => prev.map(q => (
+            q.id === quest.id ? { ...q, checkin: optimisticCheckin } : q
+        )));
 
-        showToast('Quest skipped', 'info');
-        fetchData();
+        try {
+            await supabase.from('checkins').upsert({
+                user_id: user.id,
+                habit_id: quest.id,
+                date: today,
+                status: 'skipped',
+            }, { onConflict: 'user_id,habit_id,date' });
+
+            showToast('Quest skipped', 'info');
+            fetchData();
+        } catch (err) {
+            console.error('Quest skip failed:', err);
+            showToast('Failed to skip quest. Please try again.', 'error');
+            fetchData();
+        } finally {
+            setCompletingHabitId(null);
+        }
     };
 
     const handleCompleteRandomQuest = async (dailyQuest: DailyQuest) => {
@@ -311,6 +361,7 @@ export default function QuestsPage() {
                                 streak={quest.streak}
                                 onComplete={() => handleComplete(quest)}
                                 onSkip={() => handleSkip(quest)}
+                                isLoading={completingHabitId === quest.id}
                             />
                         ))}
                     </div>
@@ -367,6 +418,7 @@ export default function QuestsPage() {
                                 streak={quest.streak}
                                 onComplete={() => handleComplete(quest)}
                                 onSkip={() => handleSkip(quest)}
+                                isLoading={completingHabitId === quest.id}
                             />
                         ))}
                     </div>
