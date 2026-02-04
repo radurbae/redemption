@@ -14,6 +14,7 @@ import { useToast } from '@/components/Toast';
 import type { Habit, Checkin } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { setCheckin, clearCheckin } from '@/lib/actions/checkins';
+import { getHabitStartDate, getEligibleDays } from '@/lib/trackerDates';
 import {
     format,
     startOfMonth,
@@ -25,6 +26,7 @@ import {
     isFuture,
     isToday as isDateToday,
     subDays,
+    isBefore,
 } from 'date-fns';
 
 export default function TrackerPage() {
@@ -173,7 +175,7 @@ export default function TrackerPage() {
     };
 
     const handleDayClick = (date: Date) => {
-        if (isFuture(date)) return;
+        if (isFuture(date) || isBefore(date, selectedHabitStartDate)) return;
         setSelectedDate(format(date, 'yyyy-MM-dd'));
     };
 
@@ -203,7 +205,8 @@ export default function TrackerPage() {
     const selectedHabit = habits.find(h => h.id === selectedHabitId);
     const doneCount = checkins.filter(c => c.status === 'done').length;
     const skippedCount = checkins.filter(c => c.status === 'skipped').length;
-    const totalDaysInMonth = days.filter(d => !isFuture(d)).length;
+    const selectedHabitStartDate = getHabitStartDate(selectedHabit, currentMonth);
+    const totalDaysInMonth = getEligibleDays(days, selectedHabitStartDate).filter(d => !isFuture(d)).length;
     const completionPercent = totalDaysInMonth > 0
         ? Math.round((doneCount / totalDaysInMonth) * 100)
         : 0;
@@ -213,8 +216,10 @@ export default function TrackerPage() {
     habits.forEach(h => {
         const hCheckins = allCheckins[h.id] || [];
         const done = hCheckins.filter(c => c.status === 'done').length;
-        completionPercents[h.id] = totalDaysInMonth > 0
-            ? Math.round((done / totalDaysInMonth) * 100)
+        const habitStartDate = getHabitStartDate(h, currentMonth);
+        const totalDays = getEligibleDays(days, habitStartDate).filter(d => !isFuture(d)).length;
+        completionPercents[h.id] = totalDays > 0
+            ? Math.round((done / totalDays) * 100)
             : 0;
     });
 
@@ -227,7 +232,7 @@ export default function TrackerPage() {
         const sortedDays = [...days].sort((a, b) => b.getTime() - a.getTime());
 
         for (const date of sortedDays) {
-            if (isFuture(date)) continue;
+            if (isFuture(date) || isBefore(date, selectedHabitStartDate)) continue;
             const status = getStatusForDate(date);
             if (status === 'done') {
                 tempStreak++;
@@ -249,6 +254,7 @@ export default function TrackerPage() {
         const today = new Date();
         for (let i = 0; i < 3; i++) {
             const date = subDays(today, i);
+            if (isBefore(date, selectedHabitStartDate)) continue;
             const dateStr = format(date, 'yyyy-MM-dd');
             const status = checkins.find(c => c.date === dateStr)?.status;
             if (status === 'done') return false;
@@ -367,6 +373,7 @@ export default function TrackerPage() {
                                         status={getStatusForDate(date)}
                                         isToday={isDateToday(date)}
                                         isFuture={isFuture(date)}
+                                        isInactive={isBefore(date, selectedHabitStartDate)}
                                         onClick={() => handleDayClick(date)}
                                     />
                                 ))}
