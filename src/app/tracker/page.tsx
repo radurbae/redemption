@@ -205,7 +205,7 @@ export default function TrackerPage() {
     const doneCount = checkins.filter(c => c.status === 'done').length;
     const skippedCount = checkins.filter(c => c.status === 'skipped').length;
     const selectedHabitStartDateStr = getHabitStartDateString(selectedHabit, currentMonth);
-    const totalDaysInMonth = getEligibleDays(days, selectedHabitStartDateStr).filter(d => !isFuture(d)).length;
+    const totalDaysInMonth = getEligibleDays(days, selectedHabitStartDateStr).filter((d: Date) => !isFuture(d)).length;
     const completionPercent = totalDaysInMonth > 0
         ? Math.round((doneCount / totalDaysInMonth) * 100)
         : 0;
@@ -216,7 +216,7 @@ export default function TrackerPage() {
         const hCheckins = allCheckins[h.id] || [];
         const done = hCheckins.filter(c => c.status === 'done').length;
         const habitStartDateStr = getHabitStartDateString(h, currentMonth);
-        const totalDays = getEligibleDays(days, habitStartDateStr).filter(d => !isFuture(d)).length;
+        const totalDays = getEligibleDays(days, habitStartDateStr).filter((d: Date) => !isFuture(d)).length;
         completionPercents[h.id] = totalDays > 0
             ? Math.round((done / totalDays) * 100)
             : 0;
