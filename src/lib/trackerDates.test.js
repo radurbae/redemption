@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { format } from 'date-fns';
-import { getHabitStartDateString, getEligibleDays } from './trackerDates.js';
+import { getHabitStartDateString, getEligibleDays, isOnOrAfterHabitCreated } from './trackerDates.js';
 
 const formatDay = (date) => format(date, 'yyyy-MM-dd');
 
@@ -29,4 +29,11 @@ test('getEligibleDays excludes dates before habit start', () => {
   ];
   const eligible = getEligibleDays(days, habitStart).map(formatDay);
   assert.deepEqual(eligible, ['2026-02-05', '2026-02-10']);
+});
+
+test('isOnOrAfterHabitCreated respects habit created date', () => {
+  const habit = { created_at: '2026-02-03T12:00:00Z' };
+  assert.equal(isOnOrAfterHabitCreated('2026-02-02', habit), false);
+  assert.equal(isOnOrAfterHabitCreated('2026-02-03', habit), true);
+  assert.equal(isOnOrAfterHabitCreated(new Date(2026, 1, 4), habit), true);
 });

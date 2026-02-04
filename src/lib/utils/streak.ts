@@ -20,10 +20,14 @@ export function calculateStreak(
 
     let streak = 0;
     let currentDate = today;
+    const createdAtStr = habit.created_at ? habit.created_at.slice(0, 10) : null;
 
     // Go backwards from today
     for (let i = 0; i < 365; i++) {
         const dateStr = formatDate(currentDate);
+        if (createdAtStr && dateStr < createdAtStr) {
+            break;
+        }
         const status = checkinMap.get(dateStr);
 
         // For weekday habits, skip weekends in streak calculation
@@ -75,6 +79,10 @@ export function shouldShowNeverMissTwiceWarning(
 
     // For weekday habits, check if yesterday was a weekday
     const yesterday = subDays(today, 1);
+    const createdAtStr = habit.created_at ? habit.created_at.slice(0, 10) : null;
+    if (createdAtStr && formatDate(yesterday) < createdAtStr) {
+        return false;
+    }
     if (habit.schedule === 'weekdays' && isWeekend(yesterday)) {
         // If yesterday was a weekend, check Friday instead
         // For simplicity, we'll skip this case and not show warning
