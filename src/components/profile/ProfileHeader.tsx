@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { PlayerProfile } from '@/lib/types';
 import type { TodaySummary } from '@/lib/utils/profileStats';
-import { getRankInfo } from '@/lib/utils/rewards';
+import { getRankInfo, xpProgressPercent, xpRequiredForLevel, totalXpForLevel } from '@/lib/utils/rewards';
 
 interface ProfileHeaderProps {
     profile: PlayerProfile;
@@ -15,20 +15,11 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
     const rankInfo = getRankInfo(profile.rank || 'E');
     const [animatedPercent, setAnimatedPercent] = useState(0);
 
-    // Calculate XP progress using same formula as rewards.ts
-    // xpRequiredForLevel(level) = 50 + level * 25
-    // Total XP for levels 1 to N is cumulative
-    const xpRequiredForLevel = (level: number) => 50 + level * 25;
-
-    // XP already spent on previous levels
-    let xpSpent = 0;
-    for (let l = 1; l < profile.level; l++) {
-        xpSpent += xpRequiredForLevel(l);
-    }
-
+    const xpSpent = totalXpForLevel(profile.level);
     const xpForThisLevel = xpRequiredForLevel(profile.level);
     const xpIntoLevel = profile.xp - xpSpent;
-    const xpPercent = Math.min(100, Math.max(0, Math.round((xpIntoLevel / xpForThisLevel) * 100)));
+    const rawPercent = xpProgressPercent(profile.xp, profile.level);
+    const xpPercent = Number.isFinite(rawPercent) ? Math.min(100, Math.max(0, rawPercent)) : 0;
     const isReady = xpIntoLevel >= xpForThisLevel;
 
     // Animate XP bar with visible progression
@@ -157,8 +148,9 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                 <div
                     className="relative h-4 rounded-full overflow-hidden"
                     style={{
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
+                        background: 'var(--background-secondary)',
+                        border: '1px solid var(--border-color)',
+                        boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.25)',
                     }}
                 >
                     {/* Progress fill with animation */}
@@ -166,6 +158,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                         className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
                         style={{
                             width: `${animatedPercent}%`,
+                            minWidth: xpPercent > 0 ? '6px' : undefined,
                             background: isReady
                                 ? 'linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24)'
                                 : 'linear-gradient(90deg, var(--primary), #a855f7)',
