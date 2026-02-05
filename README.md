@@ -1,6 +1,20 @@
-# 1% Better — RPG Habit Tracker
+# 1% Better - RPG Habit Tracker
 
 1% Better is a gamified habit tracker PWA inspired by Atomic Habits. Build consistency through daily quests, XP progression, streaks, and cosmetic rewards.
+
+## Screenshot
+
+![App screenshot](public/readme-screenshot.svg)
+
+## Portfolio Flow
+
+1. Visitor lands on the public landing page.
+2. Demo mode shows read-only sample data.
+3. Login (email or Google) unlocks the full app.
+4. Create a habit using identity and the 4 Laws method.
+5. Complete daily quests to earn XP and gold.
+6. Track streaks in the calendar view.
+7. Review stats in profile and equip loot from inventory.
 
 ## Highlights
 
@@ -73,14 +87,14 @@ npm run dev
 |--------|----|------|
 | Complete task | +5 | +3 |
 | Complete habit | +10 | +5 |
-| Streak bonus | +1 per day (max 10) | — |
+| Streak bonus | +1 per day (max 10) | - |
 | Daily clear bonus | +5 | +20 |
-| Dungeon run | x2 multiplier | — |
+| Dungeon run | x2 multiplier | - |
 
 ### Level Curve
 
 ```
-XP required = 50 + (level × 25)
+XP required = 50 + (level x 25)
 ```
 
 ### Rank Thresholds
