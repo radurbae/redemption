@@ -84,7 +84,7 @@ export default function DungeonTimer({
 
     return (
         <div className="text-center py-8">
-            {/* Quest Name */}
+            {/* Nama quest */}
             <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--foreground-muted)' }}>
                 Current Quest
             </h3>
@@ -92,9 +92,9 @@ export default function DungeonTimer({
                 {questName}
             </h2>
 
-            {/* Timer Circle */}
+            {/* Lingkaran timer */}
             <div className="relative w-64 h-64 mx-auto mb-8">
-                {/* Background circle */}
+                {/* Lingkaran latar */}
                 <svg className="w-full h-full transform -rotate-90">
                     <circle
                         cx="128"
@@ -118,7 +118,7 @@ export default function DungeonTimer({
                     />
                 </svg>
 
-                {/* Timer Display */}
+                {/* Tampilan timer */}
                 <div className="absolute inset-0 flex items-center justify-center">
                     <span className={`dungeon-timer ${isWarning ? 'warning' : ''}`}>
                         {formatTime(secondsLeft)}
@@ -126,7 +126,7 @@ export default function DungeonTimer({
                 </div>
             </div>
 
-            {/* Controls */}
+            {/* Kontrol */}
             <div className="flex items-center justify-center gap-4">
                 <button
                     onClick={handleReset}
@@ -156,7 +156,7 @@ export default function DungeonTimer({
                 </button>
             </div>
 
-            {/* Hint */}
+            {/* Petunjuk */}
             <p className="text-sm mt-6" style={{ color: 'var(--foreground-muted)' }}>
                 Focus on your quest. Double XP on completion!
             </p>

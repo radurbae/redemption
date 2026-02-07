@@ -4,7 +4,6 @@ import { formatDate } from './dates';
 
 const QUESTS_PER_DAY = 5;
 
-// Punishment messages for missed quests - educational and motivational
 const PUNISHMENT_MESSAGES = [
     "Yesterday's unfinished quests cost you. Remember: small daily wins compound into massive results.",
     "You left quests incomplete yesterday. The pain of discipline is lighter than the pain of regret.",
@@ -22,9 +21,6 @@ export interface YesterdayEvaluation {
     message: string | null;
 }
 
-/**
- * Evaluate yesterday's quests and apply penalties for incomplete ones.
- */
 export async function evaluateYesterday(): Promise<YesterdayEvaluation> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -35,7 +31,6 @@ export async function evaluateYesterday(): Promise<YesterdayEvaluation> {
 
     const yesterday = formatDate(new Date(Date.now() - 24 * 60 * 60 * 1000));
 
-    // Get yesterday's quests
     const { data: yesterdayQuests } = await supabase
         .from('daily_quests')
         .select(`*, quest:quest_pool(*)`)
@@ -53,11 +48,9 @@ export async function evaluateYesterday(): Promise<YesterdayEvaluation> {
         return { missedQuests: 0, completedQuests, totalQuests: yesterdayQuests.length, xpPenalty: 0, goldPenalty: 0, message: null };
     }
 
-    // Calculate penalty: -5 XP and -3 Gold per missed quest
     const xpPenalty = missedQuests * 5;
     const goldPenalty = missedQuests * 3;
 
-    // Apply penalty to profile
     const { data: profile } = await supabase
         .from('player_profile')
         .select('*')
@@ -73,7 +66,6 @@ export async function evaluateYesterday(): Promise<YesterdayEvaluation> {
             .update({ xp: newXp, gold: newGold })
             .eq('user_id', user.id);
 
-        // Record penalty in ledger
         await supabase.from('reward_ledger').insert({
             user_id: user.id,
             habit_id: null,
@@ -96,10 +88,6 @@ export async function evaluateYesterday(): Promise<YesterdayEvaluation> {
     };
 }
 
-/**
- * Get today's random quests for the current user.
- * If no quests exist for today, evaluate yesterday and generate new ones.
- */
 export async function getDailyQuests(): Promise<{ quests: DailyQuest[]; evaluation: YesterdayEvaluation | null }> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -108,7 +96,6 @@ export async function getDailyQuests(): Promise<{ quests: DailyQuest[]; evaluati
 
     const today = formatDate(new Date());
 
-    // Check if user already has quests for today
     const { data: existingQuests } = await supabase
         .from('daily_quests')
         .select(`*, quest:quest_pool(*)`)
@@ -119,22 +106,16 @@ export async function getDailyQuests(): Promise<{ quests: DailyQuest[]; evaluati
         return { quests: existingQuests, evaluation: null };
     }
 
-    // Evaluate yesterday before generating new quests
     const evaluation = await evaluateYesterday();
 
-    // Generate new quests for today
     const quests = await generateDailyQuests(user.id, today);
 
     return { quests, evaluation };
 }
 
-/**
- * Generate random quests for a user for a specific date.
- */
 async function generateDailyQuests(userId: string, date: string): Promise<DailyQuest[]> {
     const supabase = createClient();
 
-    // Get all active quests from the pool
     const { data: questPool } = await supabase
         .from('quest_pool')
         .select('*')
@@ -142,11 +123,9 @@ async function generateDailyQuests(userId: string, date: string): Promise<DailyQ
 
     if (!questPool || questPool.length === 0) return [];
 
-    // Shuffle and pick random quests (max 5)
     const shuffled = [...questPool].sort(() => Math.random() - 0.5);
     const selectedQuests = shuffled.slice(0, QUESTS_PER_DAY);
 
-    // Insert daily quests
     const questsToInsert = selectedQuests.map(quest => ({
         user_id: userId,
         quest_id: quest.id,
@@ -166,16 +145,12 @@ async function generateDailyQuests(userId: string, date: string): Promise<DailyQ
     return insertedQuests || [];
 }
 
-/**
- * Complete a daily quest and award rewards.
- */
 export async function completeDailyQuest(questId: string): Promise<{ xp: number; gold: number } | null> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) return null;
 
-    // Get the quest details
     const { data: dailyQuest } = await supabase
         .from('daily_quests')
         .select(`*, quest:quest_pool(*)`)
@@ -188,7 +163,6 @@ export async function completeDailyQuest(questId: string): Promise<{ xp: number;
     const quest = dailyQuest.quest;
     if (!quest) return null;
 
-    // Mark as completed
     await supabase
         .from('daily_quests')
         .update({
@@ -197,7 +171,6 @@ export async function completeDailyQuest(questId: string): Promise<{ xp: number;
         })
         .eq('id', questId);
 
-    // Award XP and Gold
     const { data: profile } = await supabase
         .from('player_profile')
         .select('*')
@@ -208,7 +181,6 @@ export async function completeDailyQuest(questId: string): Promise<{ xp: number;
         const newXp = profile.xp + quest.xp_reward;
         const newGold = profile.gold + quest.gold_reward;
 
-        // Calculate new level
         let level = profile.level;
         let xpForNext = 50 + level * 25;
         while (newXp >= xpForNext) {
@@ -221,7 +193,6 @@ export async function completeDailyQuest(questId: string): Promise<{ xp: number;
             .update({ xp: newXp, gold: newGold, level })
             .eq('user_id', user.id);
 
-        // Record in ledger
         await supabase.from('reward_ledger').insert({
             user_id: user.id,
             habit_id: questId,
@@ -235,9 +206,6 @@ export async function completeDailyQuest(questId: string): Promise<{ xp: number;
     return { xp: quest.xp_reward, gold: quest.gold_reward };
 }
 
-/**
- * Check if user can refresh quests today.
- */
 export async function canRefreshToday(): Promise<boolean> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -256,10 +224,6 @@ export async function canRefreshToday(): Promise<boolean> {
     return !tracker?.refreshed;
 }
 
-/**
- * Refresh daily quests (allowed once per day).
- * Returns null if already refreshed today.
- */
 export async function refreshDailyQuests(): Promise<{ quests: DailyQuest[]; alreadyRefreshed: boolean }> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -268,7 +232,6 @@ export async function refreshDailyQuests(): Promise<{ quests: DailyQuest[]; alre
 
     const today = formatDate(new Date());
 
-    // Check if already refreshed today
     const { data: tracker } = await supabase
         .from('quest_refresh_tracker')
         .select('*')
@@ -277,7 +240,6 @@ export async function refreshDailyQuests(): Promise<{ quests: DailyQuest[]; alre
         .single();
 
     if (tracker?.refreshed) {
-        // Already used refresh today
         const { data: existingQuests } = await supabase
             .from('daily_quests')
             .select(`*, quest:quest_pool(*)`)
@@ -287,14 +249,12 @@ export async function refreshDailyQuests(): Promise<{ quests: DailyQuest[]; alre
         return { quests: existingQuests || [], alreadyRefreshed: true };
     }
 
-    // Delete existing quests for today
     await supabase
         .from('daily_quests')
         .delete()
         .eq('user_id', user.id)
         .eq('date', today);
 
-    // Mark as refreshed
     await supabase
         .from('quest_refresh_tracker')
         .upsert({
@@ -304,7 +264,6 @@ export async function refreshDailyQuests(): Promise<{ quests: DailyQuest[]; alre
             refreshed_at: new Date().toISOString(),
         }, { onConflict: 'user_id,date' });
 
-    // Generate new quests
     const quests = await generateDailyQuests(user.id, today);
 
     return { quests, alreadyRefreshed: false };

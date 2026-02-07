@@ -7,16 +7,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - offline (offline page)
-         * - sw.js (service worker)
-         * - manifest (PWA manifest)
-         * - icons (PWA icons)
-         */
         '/((?!_next/static|_next/image|favicon.ico|offline|sw\\.js|manifest\\.webmanifest|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };

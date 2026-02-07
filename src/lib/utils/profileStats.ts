@@ -2,14 +2,12 @@ import { createClient } from '@/lib/supabase/client';
 import { formatDate } from './dates';
 import type { QuestCategory } from '@/lib/types';
 
-// Stat with trend information
 export interface StatWithTrend {
     value: number;
-    trend: number; // positive = improving, negative = declining
+    trend: number; // positif = naik, negatif = turun
     hint: string;
 }
 
-// All profile stats
 export interface ProfileStats {
     consistency: StatWithTrend;
     focus: StatWithTrend;
@@ -19,7 +17,6 @@ export interface ProfileStats {
     social: StatWithTrend;
 }
 
-// Achievement definition
 export interface Achievement {
     id: string;
     title: string;
@@ -28,7 +25,6 @@ export interface Achievement {
     earned: boolean;
 }
 
-// Today's summary
 export interface TodaySummary {
     questsCompleted: number;
     questsTotal: number;
@@ -36,7 +32,6 @@ export interface TodaySummary {
     habitsTotal: number;
 }
 
-// Streak info
 export interface StreakInfo {
     currentQuestStreak: number;
     currentHabitStreak: number;
@@ -53,9 +48,6 @@ const CATEGORY_HINTS: Record<QuestCategory, string> = {
     creativity: 'Express yourself',
 };
 
-/**
- * Calculate category-based stats from daily_quests data
- */
 export async function calculateProfileStats(): Promise<ProfileStats> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -68,27 +60,23 @@ export async function calculateProfileStats(): Promise<ProfileStats> {
     const sevenDaysAgo = formatDate(new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000));
     const fourteenDaysAgo = formatDate(new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000));
 
-    // Get quests for last 14 days
     const { data: quests } = await supabase
         .from('daily_quests')
         .select(`*, quest:quest_pool(category)`)
         .eq('user_id', user.id)
         .gte('date', fourteenDaysAgo);
 
-    // Get habits/checkins for consistency
     const { data: checkins } = await supabase
         .from('checkins')
         .select('*')
         .eq('user_id', user.id)
         .gte('date', fourteenDaysAgo);
 
-    // Split into this week and last week
     const thisWeekQuests = quests?.filter(q => q.date >= sevenDaysAgo) || [];
     const lastWeekQuests = quests?.filter(q => q.date < sevenDaysAgo) || [];
     const thisWeekCheckins = checkins?.filter(c => c.date >= sevenDaysAgo) || [];
     const lastWeekCheckins = checkins?.filter(c => c.date < sevenDaysAgo) || [];
 
-    // Calculate consistency (overall completion rate)
     const thisWeekTotal = thisWeekQuests.length + thisWeekCheckins.length;
     const thisWeekCompleted = thisWeekQuests.filter(q => q.completed).length +
         thisWeekCheckins.filter(c => c.status === 'done').length;
@@ -99,7 +87,6 @@ export async function calculateProfileStats(): Promise<ProfileStats> {
     const consistencyValue = thisWeekTotal > 0 ? Math.round((thisWeekCompleted / thisWeekTotal) * 100) : 0;
     const lastWeekConsistency = lastWeekTotal > 0 ? Math.round((lastWeekCompleted / lastWeekTotal) * 100) : 0;
 
-    // Calculate category stats
     const categoryStats = calculateCategoryStats(thisWeekQuests, lastWeekQuests);
 
     return {
@@ -148,9 +135,6 @@ function calculateCategoryStats(
     return result as Record<QuestCategory, StatWithTrend>;
 }
 
-/**
- * Get today's completion summary
- */
 export async function getTodaySummary(): Promise<TodaySummary> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -174,9 +158,6 @@ export async function getTodaySummary(): Promise<TodaySummary> {
     };
 }
 
-/**
- * Calculate streak information
- */
 export async function getStreakInfo(): Promise<StreakInfo> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -187,7 +168,6 @@ export async function getStreakInfo(): Promise<StreakInfo> {
 
     const thirtyDaysAgo = formatDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
 
-    // Get daily summaries to calculate streaks
     const { data: summaries } = await supabase
         .from('daily_summary')
         .select('*')
@@ -195,7 +175,6 @@ export async function getStreakInfo(): Promise<StreakInfo> {
         .gte('date', thirtyDaysAgo)
         .order('date', { ascending: false });
 
-    // Calculate current streak (consecutive days with cleared = true)
     let currentQuestStreak = 0;
     let bestQuestStreak = 0;
     let tempStreak = 0;
@@ -211,7 +190,6 @@ export async function getStreakInfo(): Promise<StreakInfo> {
     }
     if (currentQuestStreak === 0) currentQuestStreak = tempStreak;
 
-    // Find weakest category from recent quests
     const { data: quests } = await supabase
         .from('daily_quests')
         .select(`*, quest:quest_pool(category)`)
@@ -239,15 +217,12 @@ export async function getStreakInfo(): Promise<StreakInfo> {
 
     return {
         currentQuestStreak,
-        currentHabitStreak: currentQuestStreak, // Simplified: use same streak
+        currentHabitStreak: currentQuestStreak, // Biar simpel: pake streak yang sama
         bestQuestStreak,
         weakestCategory,
     };
 }
 
-/**
- * Compute achievements from existing data
- */
 export async function getAchievements(): Promise<Achievement[]> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -256,14 +231,12 @@ export async function getAchievements(): Promise<Achievement[]> {
         return getDefaultAchievements(false, false, false);
     }
 
-    // Check for first quest completed
     const { count: questCount } = await supabase
         .from('daily_quests')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('completed', true);
 
-    // Check for 7-day streak
     const { data: summaries } = await supabase
         .from('daily_summary')
         .select('cleared')
@@ -273,7 +246,6 @@ export async function getAchievements(): Promise<Achievement[]> {
 
     const has7DayStreak = summaries?.length === 7 && summaries.every(s => s.cleared);
 
-    // Check for daily clear (any day)
     const { count: clearCount } = await supabase
         .from('daily_summary')
         .select('*', { count: 'exact', head: true })

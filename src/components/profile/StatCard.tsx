@@ -28,7 +28,6 @@ export default function StatCard({
     const TrendIcon = stat.trend > 0 ? TrendingUp : stat.trend < 0 ? TrendingDown : Minus;
     const trendColor = stat.trend > 0 ? '#22c55e' : stat.trend < 0 ? '#ef4444' : 'var(--foreground-muted)';
 
-    // Determine stat tier for visual feedback
     const tier = stat.value >= 80 ? 'S' : stat.value >= 60 ? 'A' : stat.value >= 40 ? 'B' : stat.value >= 20 ? 'C' : 'D';
     const tierColors: Record<string, string> = {
         'S': '#fbbf24',
@@ -45,7 +44,7 @@ export default function StatCard({
             onMouseLeave={() => setShowTooltip(false)}
             className="relative group w-full text-left"
         >
-            {/* Card with glow effect */}
+            {/* Kartu efek glow */}
             <div
                 className="card p-4 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
                 style={{
@@ -53,7 +52,7 @@ export default function StatCard({
                     boxShadow: `0 0 20px ${color}15, inset 0 1px 0 ${color}20`,
                 }}
             >
-                {/* Glow overlay on hover */}
+                {/* Overlay glow pas hover */}
                 <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                     style={{
@@ -61,7 +60,7 @@ export default function StatCard({
                     }}
                 />
 
-                {/* Header: Icon + Tier Badge */}
+                {/* Header: ikon + badge tier */}
                 <div className="flex items-center justify-between mb-3 relative">
                     <div className="flex items-center gap-2">
                         <div
@@ -83,7 +82,7 @@ export default function StatCard({
                         </div>
                     </div>
 
-                    {/* Tier Badge */}
+                    {/* Badge tier */}
                     <div
                         className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
                         style={{
@@ -96,7 +95,7 @@ export default function StatCard({
                     </div>
                 </div>
 
-                {/* Value Display */}
+                {/* Tampilan nilai */}
                 <div className="flex items-end gap-2 mb-3">
                     <span
                         className="text-4xl font-bold tabular-nums"
@@ -112,7 +111,7 @@ export default function StatCard({
                     </span>
                 </div>
 
-                {/* Progress Bar */}
+                {/* Bar progres */}
                 <div className="relative h-2 bg-zinc-800/50 rounded-full overflow-hidden mb-3">
                     <div
                         className="absolute inset-y-0 left-0 rounded-full"
@@ -124,7 +123,7 @@ export default function StatCard({
                     />
                 </div>
 
-                {/* Trend & Hint */}
+                {/* Tren & petunjuk */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                         <TrendIcon className="w-3.5 h-3.5" style={{ color: trendColor }} />
@@ -139,7 +138,7 @@ export default function StatCard({
                 </div>
             </div>
 
-            {/* Tooltip */}
+            {/* Petunjuk mini */}
             {showTooltip && (
                 <div
                     className="absolute z-50 left-0 right-0 -bottom-2 translate-y-full p-3 rounded-lg text-xs"
@@ -159,8 +158,3 @@ export default function StatCard({
     );
 }
 
-// CSS keyframes for shimmer (add to globals.css)
-// @keyframes shimmer {
-//   0% { background-position: 200% 0; }
-//   100% { background-position: -200% 0; }
-// }

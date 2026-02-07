@@ -39,7 +39,7 @@ export default function ItemCard({ item, isEquipped, onEquip, onClick }: ItemCar
                     : `0 0 15px ${RARITY_GLOW[item.rarity]}`,
             }}
         >
-            {/* Equipped badge */}
+            {/* Badge yang kepake */}
             {isEquipped && (
                 <div
                     className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
@@ -49,7 +49,7 @@ export default function ItemCard({ item, isEquipped, onEquip, onClick }: ItemCar
                 </div>
             )}
 
-            {/* Rarity glow overlay */}
+            {/* Overlay glow rarity */}
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
@@ -57,7 +57,7 @@ export default function ItemCard({ item, isEquipped, onEquip, onClick }: ItemCar
                 }}
             />
 
-            {/* Icon with glow */}
+            {/* Ikon dengan glow */}
             <div className="relative mb-3">
                 <span
                     className="text-3xl block"
@@ -69,7 +69,7 @@ export default function ItemCard({ item, isEquipped, onEquip, onClick }: ItemCar
                 </span>
             </div>
 
-            {/* Name */}
+            {/* Nama */}
             <h4
                 className="font-bold text-sm mb-1"
                 style={{ color: rarityColor }}
@@ -77,12 +77,12 @@ export default function ItemCard({ item, isEquipped, onEquip, onClick }: ItemCar
                 {item.name}
             </h4>
 
-            {/* Rarity + Type */}
+            {/* Tingkat langka + tipe */}
             <p className="text-xs capitalize mb-3" style={{ color: 'var(--foreground-muted)' }}>
                 {item.rarity} {item.type}
             </p>
 
-            {/* Equip button */}
+            {/* Tombol equip */}
             {!isEquipped ? (
                 <button
                     onClick={(e) => {

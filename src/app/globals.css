@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 /* ========================================
-   CSS VARIABLES & SAFE AREAS
+   VARIABEL CSS & SAFE AREA
    ======================================== */
 :root {
-  /* RPG Dark Theme */
+  /* Tema gelap RPG */
   --background: #0a0a0f;
   --background-secondary: #12121a;
   --foreground: #e4e4e7;
@@ -15,7 +15,7 @@
   --card-border: rgba(255, 255, 255, 0.08);
   --border-color: rgba(255, 255, 255, 0.1);
 
-  /* Accent colors */
+  /* Warna aksen */
   --primary: #818cf8;
   --primary-hover: #6366f1;
   --primary-glow: rgba(129, 140, 248, 0.3);
@@ -24,30 +24,30 @@
   --accent-gold: #fbbf24;
   --accent-red: #ef4444;
 
-  /* Game colors */
+  /* Warna game */
   --success: #22c55e;
   --success-glow: rgba(34, 197, 94, 0.3);
   --xp-bar: linear-gradient(90deg, #818cf8, #a855f7);
   --gold-color: #fbbf24;
 
-  /* Rarity colors */
+  /* Warna rarity */
   --rarity-common: #9ca3af;
   --rarity-rare: #3b82f6;
   --rarity-epic: #a855f7;
   --rarity-legendary: #fbbf24;
 
-  /* Safe areas with fallbacks */
+  /* Safe area + cadangan */
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
 
-  /* App chrome sizes */
+  /* Ukuran elemen app */
   --header-height: 56px;
   --bottom-nav-height: 64px;
 }
 
-/* Light mode override */
+/* Override mode terang */
 html.light {
   --background: #f5f5f7;
   --background-secondary: #ffffff;
@@ -64,7 +64,7 @@ html.light body {
 }
 
 /* ========================================
-   BASE STYLES
+   GAYA DASAR
    ======================================== */
 html {
   -webkit-text-size-adjust: 100%;
@@ -81,19 +81,19 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Prevent iOS zoom on input focus */
+/* Biar iOS ga nge-zoom pas input */
 input,
 select,
 textarea {
   font-size: 16px !important;
 }
 
-/* Remove tap highlight on iOS */
+/* Hapus highlight tap di iOS */
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Better touch behavior on buttons */
+/* Biar sentuhan tombol lebih enak */
 button,
 a,
 [role="button"] {
@@ -101,7 +101,7 @@ a,
 }
 
 /* ========================================
-   SAFE AREA UTILITIES
+   UTILITAS SAFE AREA
    ======================================== */
 @layer utilities {
   .pt-safe {
@@ -124,7 +124,7 @@ a,
     padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 1rem);
   }
 
-  /* Neon glow utilities */
+  /* Utility glow neon */
   .glow-primary {
     box-shadow: 0 0 20px var(--primary-glow);
   }
@@ -137,7 +137,7 @@ a,
     text-shadow: 0 0 10px currentColor;
   }
 
-  /* Shimmer animation for progress bars */
+  /* Animasi shimmer buat bar progres */
   .animate-shimmer {
     animation: shimmer 2s ease-in-out infinite;
   }
@@ -166,7 +166,7 @@ a,
 }
 
 /* ========================================
-   ACCESSIBILITY
+   AKSESIBILITAS
    ======================================== */
 @layer base {
   *:focus-visible {
@@ -174,7 +174,7 @@ a,
   }
 }
 
-/* Reduced motion support */
+/* Dukungan gerak minim */
 @media (prefers-reduced-motion: reduce) {
 
   *,
@@ -187,10 +187,10 @@ a,
 }
 
 /* ========================================
-   RPG CARD STYLES
+   GAYA KARTU RPG
    ======================================== */
 
-/* Glassy card */
+/* Kartu efek kaca */
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -199,7 +199,7 @@ a,
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* Status window (RPG panel) */
+/* Panel status (RPG) */
 .status-window {
   background: linear-gradient(135deg, rgba(24, 24, 32, 0.95), rgba(15, 15, 20, 0.95));
   border: 1px solid rgba(129, 140, 248, 0.3);
@@ -221,7 +221,7 @@ a,
   background: linear-gradient(90deg, transparent, rgba(129, 140, 248, 0.5), transparent);
 }
 
-/* Quest card */
+/* Kartu quest */
 .quest-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -244,15 +244,15 @@ a,
 }
 
 /* ========================================
-   BUTTONS
+   TOMBOL
    ======================================== */
 
-/* Press animation for buttons */
+/* Animasi pas tombol ditekan */
 .btn-press {
   @apply transition-all duration-150 active:scale-[0.97] active:opacity-90;
 }
 
-/* Primary button (glowing) */
+/* Tombol utama (glow) */
 .btn-primary {
   @apply px-6 py-3 font-semibold rounded-xl;
   background: linear-gradient(135deg, var(--primary), var(--accent-purple));
@@ -270,7 +270,7 @@ a,
   transform: scale(0.97);
 }
 
-/* Secondary button */
+/* Tombol sekunder */
 .btn-secondary {
   @apply px-6 py-3 font-semibold rounded-xl;
   background: rgba(255, 255, 255, 0.08);
@@ -283,7 +283,7 @@ a,
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Success button (Quest Complete) */
+/* Tombol sukses (quest beres) */
 .btn-success {
   @apply px-6 py-3.5 font-semibold rounded-xl min-h-[48px];
   background: var(--success);
@@ -296,7 +296,7 @@ a,
   box-shadow: 0 0 25px var(--success-glow);
 }
 
-/* Skip button */
+/* Tombol skip */
 .btn-skip {
   @apply px-4 py-3.5 font-medium rounded-xl min-h-[48px];
   background: rgba(255, 255, 255, 0.05);
@@ -309,7 +309,7 @@ a,
 }
 
 /* ========================================
-   XP BAR
+   BAR XP
    ======================================== */
 .xp-bar-container {
   height: 8px;
@@ -349,7 +349,7 @@ a,
 }
 
 /* ========================================
-   RANK BADGE
+   BADGE RANK
    ======================================== */
 .rank-badge {
   display: inline-flex;
@@ -413,7 +413,7 @@ a,
 }
 
 /* ========================================
-   STAT DISPLAY
+   TAMPILAN STAT
    ======================================== */
 .stat-item {
   display: flex;
@@ -440,15 +440,15 @@ a,
 }
 
 /* ========================================
-   SKELETON LOADING
+   LOADING PLACEHOLDER
    ======================================== */
 .skeleton {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 0.5rem;
-  /* Animation removed for better performance on low-end devices */
+  /* Animasi dimatiin biar HP low-end tetep lancar */
 }
 
-/* Keep keyframes available for other uses */
+/* Keyframe tetep disimpen buat kepake lain */
 @keyframes skeleton-pulse {
 
   0%,
@@ -516,7 +516,7 @@ a,
 }
 
 /* ========================================
-   BOTTOM SHEET
+   PANEL BAWAH
    ======================================== */
 @keyframes sheet-up {
   from {
@@ -547,7 +547,7 @@ a,
 }
 
 /* ========================================
-   LEVEL UP MODAL
+   MODAL NAIK LEVEL
    ======================================== */
 @keyframes level-up-appear {
   0% {
@@ -590,7 +590,7 @@ a,
 }
 
 /* ========================================
-   LOOT DROP
+   LOOT ACAK
    ======================================== */
 @keyframes card-flip {
   0% {
@@ -634,7 +634,7 @@ a,
 }
 
 /* ========================================
-   CONFETTI
+   KONFETI
    ======================================== */
 @keyframes confetti-fall {
   0% {
@@ -657,7 +657,7 @@ a,
 }
 
 /* ========================================
-   DUNGEON TIMER
+   TIMER DUNGEON
    ======================================== */
 .dungeon-timer {
   font-family: 'SF Mono', 'Fira Code', monospace;
@@ -685,7 +685,7 @@ a,
 }
 
 /* ========================================
-   RARITY COLORS
+   WARNA RARITY
    ======================================== */
 .rarity-common {
   color: var(--rarity-common);
@@ -721,7 +721,7 @@ a,
 }
 
 /* ========================================
-   GOLD DISPLAY
+   TAMPILAN GOLD
    ======================================== */
 .gold-amount {
   color: var(--accent-gold);
@@ -732,7 +732,7 @@ a,
 }
 
 /* ========================================
-   SCROLLBAR
+   BILAH GULIR
    ======================================== */
 ::-webkit-scrollbar {
   width: 6px;
@@ -752,7 +752,7 @@ a,
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Hide scrollbar on mobile for cleaner look */
+/* Sembunyiin scrollbar di mobile biar rapi */
 @media (max-width: 768px) {
   ::-webkit-scrollbar {
     display: none;
@@ -776,7 +776,7 @@ dialog[open]::backdrop {
 }
 
 /* ========================================
-   MISC ANIMATIONS
+   ANIMASI LAIN
    ======================================== */
 @keyframes spin {
   to {

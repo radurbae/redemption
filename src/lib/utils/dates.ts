@@ -28,7 +28,6 @@ export function getYesterdayString(): string {
     return formatDate(yesterday);
 }
 
-// Alias for backwards compatibility
 export const getYesterdayDate = getYesterdayString;
 
 export function checkIsToday(date: Date | string): boolean {

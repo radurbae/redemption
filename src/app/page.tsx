@@ -9,11 +9,10 @@ import { createClient } from '@/lib/supabase/client';
 import { formatDate } from '@/lib/utils/dates';
 import { levelFromXp } from '@/lib/utils/rewards';
 
-const TASK_XP = 5; // XP per task completion
-const TASK_GOLD = 3; // Gold per task completion
-const REMINDER_MINUTES = 15; // Minutes before task to remind
+const TASK_XP = 5; // XP tiap task selesai
+const TASK_GOLD = 3; // Koin tiap task selesai
+const REMINDER_MINUTES = 15; // Menit sebelum task buat ngingetin
 
-// Format time for display (24h to 12h)
 function formatTime(time: string | null): string {
   if (!time) return '';
   const [hours, minutes] = time.split(':');
@@ -23,7 +22,6 @@ function formatTime(time: string | null): string {
   return `${hour12}:${minutes} ${ampm}`;
 }
 
-// Request notification permission
 async function requestNotificationPermission(): Promise<boolean> {
   if (!('Notification' in window)) {
     console.log('Notifications not supported');
@@ -42,7 +40,6 @@ async function requestNotificationPermission(): Promise<boolean> {
   return false;
 }
 
-// Schedule a notification
 function scheduleNotification(task: Task) {
   if (!task.scheduled_time || !('Notification' in window) || Notification.permission !== 'granted') {
     return null;
@@ -53,11 +50,9 @@ function scheduleNotification(task: Task) {
   const taskTime = new Date();
   taskTime.setHours(hours, minutes, 0, 0);
 
-  // Time to notify (15 min before)
   const notifyTime = new Date(taskTime.getTime() - REMINDER_MINUTES * 60 * 1000);
   const delay = notifyTime.getTime() - now.getTime();
 
-  // Only schedule if it's in the future
   if (delay > 0) {
     return setTimeout(() => {
       new Notification('⏰ Task Reminder', {
@@ -85,7 +80,6 @@ export default function ToDoPage() {
   const { showToast } = useToast();
   const today = formatDate(new Date());
 
-  // Check notification permission on mount
   useEffect(() => {
     setIsMounted(true);
     if ('Notification' in window) {
@@ -93,13 +87,10 @@ export default function ToDoPage() {
     }
   }, []);
 
-  // Schedule notifications for tasks with time
   useEffect(() => {
-    // Clear old timers
     timersRef.current.forEach(timer => clearTimeout(timer));
     timersRef.current.clear();
 
-    // Schedule new ones
     if (notificationsEnabled) {
       tasks.forEach(task => {
         if (!task.completed && task.scheduled_time) {
@@ -142,7 +133,6 @@ export default function ToDoPage() {
     const granted = await requestNotificationPermission();
     setNotificationsEnabled(granted);
     if (granted) {
-      // Send a test notification immediately
       new Notification('✅ Notifications Enabled!', {
         body: 'You\'ll get reminders 15 minutes before scheduled tasks.',
         icon: '/icons/icon-192x192.png',
@@ -180,7 +170,6 @@ export default function ToDoPage() {
     if (data && !error) {
       setTasks(prev => {
         const updated = [...prev, data];
-        // Sort by time (nulls last), then by created_at
         return updated.sort((a, b) => {
           if (!a.scheduled_time && !b.scheduled_time) return 0;
           if (!a.scheduled_time) return 1;
@@ -203,7 +192,6 @@ export default function ToDoPage() {
 
     const newCompleted = !task.completed;
 
-    // Optimistic update
     setTasks(prev => prev.map(t =>
       t.id === task.id ? { ...t, completed: newCompleted } : t
     ));
@@ -213,9 +201,7 @@ export default function ToDoPage() {
       .update({ completed: newCompleted })
       .eq('id', task.id);
 
-    // Award XP/Gold on completion
     if (newCompleted) {
-      // Clear any scheduled notification
       const timer = timersRef.current.get(task.id);
       if (timer) {
         clearTimeout(timer);
@@ -255,7 +241,6 @@ export default function ToDoPage() {
   const handleDeleteTask = async (taskId: string) => {
     const supabase = createClient();
 
-    // Clear notification timer
     const timer = timersRef.current.get(taskId);
     if (timer) {
       clearTimeout(timer);
@@ -270,7 +255,6 @@ export default function ToDoPage() {
       .eq('id', taskId);
   };
 
-  // Separate ongoing and done tasks
   const ongoingTasks = tasks.filter(t => !t.completed);
   const doneTasks = tasks.filter(t => t.completed);
   const completedCount = doneTasks.length;
@@ -288,7 +272,7 @@ export default function ToDoPage() {
         borderColor: 'var(--border)'
       } : undefined}
     >
-      {/* Checkbox */}
+      {/* Kotak centang */}
       <button
         onClick={() => handleToggleTask(task)}
         className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all btn-press ${task.completed
@@ -300,7 +284,7 @@ export default function ToDoPage() {
         {task.completed && <Check className="w-4 h-4" />}
       </button>
 
-      {/* Title + Time */}
+      {/* Judul + waktu */}
       <div className="flex-1 min-w-0">
         <span
           className="block truncate"
@@ -325,7 +309,7 @@ export default function ToDoPage() {
         )}
       </div>
 
-      {/* Delete */}
+      {/* Hapus */}
       <button
         onClick={() => handleDeleteTask(task.id)}
         className="w-8 h-8 rounded-lg flex items-center justify-center hover:text-red-500 hover:bg-red-500/10 transition-colors"
@@ -338,7 +322,7 @@ export default function ToDoPage() {
 
   return (
     <AppShell>
-      {/* Header */}
+      {/* Bagian atas */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
           <ListTodo className="w-7 h-7 text-indigo-500" />
@@ -355,7 +339,7 @@ export default function ToDoPage() {
         </p>
       </div>
 
-      {/* Progress */}
+      {/* Progres */}
       {totalCount > 0 && (
         <div className="card p-4 mb-6">
           <div className="flex items-center justify-between mb-2">
@@ -381,7 +365,7 @@ export default function ToDoPage() {
         </div>
       )}
 
-      {/* Notification Permission Banner */}
+      {/* Banner izin notifikasi */}
       {isMounted && !notificationsEnabled && 'Notification' in window && (
         <button
           onClick={handleEnableNotifications}
@@ -401,7 +385,7 @@ export default function ToDoPage() {
         </button>
       )}
 
-      {/* Add Task Form */}
+      {/* Form tambah task */}
       <form onSubmit={handleAddTask} className="mb-6">
         <div className="flex gap-2 mb-2">
           <input
@@ -426,7 +410,7 @@ export default function ToDoPage() {
             <span className="hidden sm:inline">Add</span>
           </button>
         </div>
-        {/* Time picker row */}
+        {/* Baris pilih waktu */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4" style={{ color: 'var(--foreground-muted)' }} />
@@ -460,7 +444,7 @@ export default function ToDoPage() {
         </p>
       </form>
 
-      {/* Ongoing Tasks */}
+      {/* Task yang lagi jalan */}
       <div className="space-y-2 mb-6">
         {isLoading ? (
           <>
@@ -492,7 +476,7 @@ export default function ToDoPage() {
         )}
       </div>
 
-      {/* Done Section (Collapsible) */}
+      {/* Bagian selesai (bisa tutup) */}
       {doneTasks.length > 0 && (
         <div className="mt-4">
           <button

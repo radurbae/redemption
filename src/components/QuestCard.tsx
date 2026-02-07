@@ -27,7 +27,6 @@ export default function QuestCard({
     const isSkipped = checkin?.status === 'skipped';
     const isMainQuest = habit.quest_type === 'main';
 
-    // Estimate difficulty by easy_step length
     const difficulty = habit.difficulty || (
         habit.easy_step.length < 30 ? 'easy' :
             habit.easy_step.length < 60 ? 'normal' : 'hard'
@@ -48,7 +47,7 @@ export default function QuestCard({
         <div
             className={`quest-card ${isMainQuest ? 'main-quest' : ''} ${isCompleted ? 'opacity-60' : ''} p-4 transition-all duration-300`}
         >
-            {/* Quest Type Badge */}
+            {/* Badge tipe quest */}
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     {isMainQuest ? (
@@ -84,7 +83,7 @@ export default function QuestCard({
                 )}
             </div>
 
-            {/* Quest Title */}
+            {/* Judul quest */}
             <div className="flex justify-between items-start mb-1">
                 <Link href={`/habits/${habit.id}`} className="flex-1">
                     <h3
@@ -105,20 +104,20 @@ export default function QuestCard({
                 )}
             </div>
 
-            {/* Identity Badge */}
+            {/* Badge identitas */}
             {isMainQuest && (
                 <p className="text-xs font-medium text-indigo-400 mb-2">
                     Identity: &quot;{habit.identity}&quot;
                 </p>
             )}
 
-            {/* Easy Step */}
+            {/* Langkah gampang */}
             <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--foreground-muted)' }}>
                 <Clock className="w-3.5 h-3.5 inline mr-1" />
                 {habit.easy_step}
             </p>
 
-            {/* Expanded Details */}
+            {/* Detail kebuka */}
             {isExpanded && isMainQuest && (
                 <div
                     className="mb-4 rounded-lg p-3 space-y-2 text-sm border"
@@ -148,7 +147,7 @@ export default function QuestCard({
                 </div>
             )}
 
-            {/* Rewards Preview */}
+            {/* Pratinjau hadiah */}
             <div
                 className="flex items-center gap-4 text-sm mb-4 p-2 rounded-lg"
                 style={{ backgroundColor: 'var(--background-secondary)' }}
@@ -163,7 +162,7 @@ export default function QuestCard({
                 </span>
             </div>
 
-            {/* Actions */}
+            {/* Aksi */}
             {!isCompleted && !isSkipped ? (
                 <div className="flex items-center gap-2">
                     <button

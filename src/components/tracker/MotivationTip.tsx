@@ -15,7 +15,6 @@ export default function MotivationTip({
     completionPercent,
     lastThreeDaysEmpty,
 }: MotivationTipProps) {
-    // Determine which tip to show
     let tip: { icon: typeof Lightbulb; text: string; color: string } | null = null;
 
     if (currentStreak > 0 && currentStreak === bestStreak - 1) {

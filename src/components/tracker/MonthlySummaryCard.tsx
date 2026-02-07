@@ -36,7 +36,7 @@ export default function MonthlySummaryCard({
                     : '0 4px 20px rgba(0, 0, 0, 0.1)',
             }}
         >
-            {/* Glow overlay for hot streaks */}
+            {/* Overlay glow buat streak panas */}
             {isHot && (
                 <div
                     className="absolute inset-0 pointer-events-none"
@@ -46,7 +46,7 @@ export default function MonthlySummaryCard({
                 />
             )}
 
-            {/* Header */}
+            {/* Bagian atas */}
             <div className="flex items-center justify-between mb-4 relative">
                 <div>
                     <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>
@@ -57,7 +57,7 @@ export default function MonthlySummaryCard({
                     </p>
                 </div>
 
-                {/* Completion Badge */}
+                {/* Badge selesai */}
                 <div
                     className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold"
                     style={{
@@ -78,9 +78,9 @@ export default function MonthlySummaryCard({
                 </div>
             </div>
 
-            {/* Stats Grid */}
+            {/* Grid stat */}
             <div className="grid grid-cols-4 gap-3">
-                {/* Done */}
+                {/* Selesai */}
                 <div className="text-center">
                     <div
                         className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center mb-1"
@@ -92,7 +92,7 @@ export default function MonthlySummaryCard({
                     <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--foreground-muted)' }}>Done</p>
                 </div>
 
-                {/* Skipped */}
+                {/* Diskip */}
                 <div className="text-center">
                     <div
                         className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center mb-1"
@@ -104,7 +104,7 @@ export default function MonthlySummaryCard({
                     <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--foreground-muted)' }}>Skip</p>
                 </div>
 
-                {/* Current Streak */}
+                {/* Streak sekarang */}
                 <div className="text-center">
                     <div
                         className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center mb-1"
@@ -116,7 +116,7 @@ export default function MonthlySummaryCard({
                     <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--foreground-muted)' }}>Streak</p>
                 </div>
 
-                {/* Best Streak */}
+                {/* Streak terbaik */}
                 <div className="text-center">
                     <div
                         className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center mb-1"

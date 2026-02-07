@@ -22,11 +22,10 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
     const xpPercent = Number.isFinite(rawPercent) ? Math.min(100, Math.max(0, rawPercent)) : 0;
     const isReady = xpIntoLevel >= xpForThisLevel;
 
-    // Animate XP bar with visible progression
     useEffect(() => {
-        setAnimatedPercent(0); // Reset on change
-        const duration = 1500; // 1.5 seconds total
-        const steps = 60; // 60 fps
+        setAnimatedPercent(0); // Reset pas data berubah
+        const duration = 1500; // Total 1.5 detik
+        const steps = 60; // 60 frame per detik
         const increment = xpPercent / steps;
         let current = 0;
 
@@ -43,7 +42,6 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
         return () => clearInterval(timer);
     }, [xpPercent]);
 
-    // Get initials from email
     const initials = email
         ? email.split('@')[0].slice(0, 2).toUpperCase()
         : 'P1';
@@ -56,7 +54,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                 borderColor: isReady ? 'rgba(251, 191, 36, 0.4)' : undefined,
             }}
         >
-            {/* Ready for level up glow overlay */}
+            {/* Overlay glow kalau siap naik level */}
             {isReady && (
                 <div
                     className="absolute inset-0 pointer-events-none animate-pulse"
@@ -66,9 +64,9 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                 />
             )}
 
-            {/* Top Row: Avatar, Level, Rank */}
+            {/* Baris atas: avatar, level, rank */}
             <div className="flex items-center gap-4 mb-4 relative">
-                {/* Avatar */}
+                {/* Foto profil */}
                 <div
                     className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold relative"
                     style={{
@@ -78,7 +76,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                     }}
                 >
                     {initials}
-                    {/* Pulse ring for level up ready */}
+                    {/* Ring pulse kalau siap naik level */}
                     {isReady && (
                         <div
                             className="absolute inset-0 rounded-full animate-ping opacity-30"
@@ -87,7 +85,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                     )}
                 </div>
 
-                {/* Level & Rank */}
+                {/* Level & rank */}
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                         <span
@@ -118,7 +116,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                     <p className="text-sm truncate" style={{ color: 'var(--foreground-muted)' }}>
                         {email || 'Adventurer'}
                     </p>
-                    {/* Equipped Title */}
+                    {/* Gelar yang kepake */}
                     {profile.equipped_title && (
                         <p className="text-xs mt-1" style={{ color: 'var(--primary)' }}>
                             📜 {profile.equipped_title}
@@ -126,7 +124,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                     )}
                 </div>
 
-                {/* Gold */}
+                {/* Koin */}
                 <div className="text-right">
                     <div className="flex items-center gap-1 text-lg font-semibold text-yellow-500">
                         <span>🪙</span>
@@ -135,7 +133,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                 </div>
             </div>
 
-            {/* XP Bar */}
+            {/* Bar XP */}
             <div className="mb-4">
                 <div className="flex items-center justify-between text-xs mb-1">
                     <span style={{ color: 'var(--foreground-muted)' }}>Experience</span>
@@ -144,7 +142,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                     </span>
                 </div>
 
-                {/* XP Bar Container */}
+                {/* Wadah bar XP */}
                 <div
                     className="relative h-4 rounded-full overflow-hidden"
                     style={{
@@ -153,7 +151,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                         boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.25)',
                     }}
                 >
-                    {/* Progress fill with animation */}
+                    {/* Isi progres pake animasi */}
                     <div
                         className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
                         style={{
@@ -170,13 +168,13 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                         }}
                     />
 
-                    {/* Shimmer overlay */}
+                    {/* Overlay shimmer */}
                     <div
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
                         style={{ backgroundSize: '200% 100%' }}
                     />
 
-                    {/* Sparkles when ready */}
+                    {/* Efek sparkle kalau siap */}
                     {isReady && (
                         <>
                             <div className="absolute top-1 left-1/4 w-1 h-1 bg-white rounded-full animate-ping" />
@@ -186,7 +184,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                     )}
                 </div>
 
-                {/* XP Numbers */}
+                {/* Angka XP */}
                 <div className="flex items-center justify-between mt-1">
                     <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>
                         {profile.xp.toLocaleString()} XP
@@ -197,7 +195,7 @@ export default function ProfileHeader({ profile, email, todaySummary }: ProfileH
                 </div>
             </div>
 
-            {/* Today Summary */}
+            {/* Ringkasan hari ini */}
             <div
                 className="flex items-center justify-center gap-4 py-2.5 px-4 rounded-xl text-sm"
                 style={{ background: 'var(--background-secondary)' }}

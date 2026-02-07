@@ -61,10 +61,10 @@ export default function DayCell({ date, status, isToday, isFuture, isInactive, o
             }}
             aria-label={`${format(date, 'MMMM d')}, ${status || 'not tracked'}`}
         >
-            {/* Day number */}
+            {/* Angka tanggal */}
             <span className="relative z-10">{day}</span>
 
-            {/* Status icon overlay */}
+            {/* Overlay ikon status */}
             {status === 'done' && (
                 <div className="absolute top-1 right-1">
                     <Check className="w-3 h-3 text-green-500" />
@@ -76,7 +76,7 @@ export default function DayCell({ date, status, isToday, isFuture, isInactive, o
                 </div>
             )}
 
-            {/* Today indicator dot */}
+            {/* Titik penanda hari ini */}
             {isToday && !status && (
                 <div
                     className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
@@ -84,7 +84,7 @@ export default function DayCell({ date, status, isToday, isFuture, isInactive, o
                 />
             )}
 
-            {/* Hover effect */}
+            {/* Efek hover */}
             {!isDisabled && !status && (
                 <div
                     className="absolute inset-0 rounded-xl opacity-0 hover:opacity-100 transition-opacity"

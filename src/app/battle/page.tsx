@@ -65,13 +65,11 @@ export default function BattlePage() {
 
         const today = formatDate(new Date());
 
-        // Calculate dungeon rewards (bonus XP)
         const rewards = calculateRewards({
             streak: 0,
             isDungeonRun: true,
         });
 
-        // Apply duration multiplier
         const multiplier = selectedDuration >= 25 ? 2.5 : selectedDuration >= 15 ? 2 : 1.5;
         const finalXp = Math.round(rewards.xp * multiplier);
         const finalGold = rewards.gold;
@@ -80,14 +78,12 @@ export default function BattlePage() {
         const newGold = profile.gold + finalGold;
         const calculatedLevel = levelFromXp(newXp);
 
-        // Update profile
         await supabase.from('player_profile').update({
             xp: newXp,
             gold: newGold,
             level: calculatedLevel,
         }).eq('user_id', user.id);
 
-        // Record in ledger
         await supabase.from('reward_ledger').insert({
             user_id: user.id,
             habit_id: selectedHabit.id,
@@ -97,7 +93,6 @@ export default function BattlePage() {
             reason: 'dungeon_clear',
         });
 
-        // Mark as completed
         await supabase.from('checkins').upsert({
             user_id: user.id,
             habit_id: selectedHabit.id,
@@ -141,7 +136,7 @@ export default function BattlePage() {
 
     return (
         <AppShell>
-            {/* Header */}
+            {/* Bagian atas */}
             <div className="text-center mb-8">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-600/20 flex items-center justify-center">
                     <Sword className="w-8 h-8 text-indigo-500" />
@@ -152,7 +147,7 @@ export default function BattlePage() {
                 </p>
             </div>
 
-            {/* Quest Selection */}
+            {/* Pilih quest */}
             <div className="mb-6">
                 <h2 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--foreground-muted)' }}>
                     Select Quest
@@ -183,7 +178,7 @@ export default function BattlePage() {
                 </div>
             </div>
 
-            {/* Duration Selection */}
+            {/* Pilih durasi */}
             {selectedHabit && (
                 <div className="mb-8">
                     <h2 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--foreground-muted)' }}>
@@ -215,7 +210,7 @@ export default function BattlePage() {
                 </div>
             )}
 
-            {/* Start Button */}
+            {/* Tombol mulai */}
             {selectedHabit && (
                 <button
                     onClick={() => startDungeon(selectedHabit, selectedDuration)}
@@ -225,7 +220,7 @@ export default function BattlePage() {
                 </button>
             )}
 
-            {/* Empty State */}
+            {/* Belum ada data */}
             {habits.length === 0 && (
                 <div className="card p-8 text-center">
                     <span className="text-4xl mb-4 block">🗡️</span>

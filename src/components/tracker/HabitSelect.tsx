@@ -25,7 +25,6 @@ export default function HabitSelect({
     const isHot = selectedPercent >= 70;
     const needsAttention = selectedPercent < 40 && selectedPercent > 0;
 
-    // Close on outside click
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -36,7 +35,6 @@ export default function HabitSelect({
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
-    // Close on Escape
     useEffect(() => {
         const handleKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') setIsOpen(false);
@@ -47,7 +45,7 @@ export default function HabitSelect({
 
     return (
         <div ref={containerRef} className="relative mb-4">
-            {/* Trigger Button */}
+            {/* Tombol trigger */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full card p-4 flex items-center justify-between gap-3 transition-all hover:scale-[1.01] active:scale-[0.99]"
@@ -56,7 +54,7 @@ export default function HabitSelect({
                 }}
             >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {/* Icon */}
+                    {/* Ikon */}
                     <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                         style={{
@@ -68,7 +66,7 @@ export default function HabitSelect({
                         <span className="text-lg">📋</span>
                     </div>
 
-                    {/* Habit Name */}
+                    {/* Nama habit */}
                     <div className="flex-1 min-w-0 text-left">
                         <p className="font-semibold truncate" style={{ color: 'var(--foreground)' }}>
                             {selectedHabit?.title || 'Select habit'}
@@ -93,7 +91,7 @@ export default function HabitSelect({
                     </div>
                 </div>
 
-                {/* Completion Badge + Chevron */}
+                {/* Badge selesai + chevron */}
                 <div className="flex items-center gap-2 shrink-0">
                     <div
                         className="px-2 py-1 rounded-lg text-sm font-semibold"
@@ -119,7 +117,7 @@ export default function HabitSelect({
                 </div>
             </button>
 
-            {/* Dropdown */}
+            {/* Menu turun */}
             {isOpen && (
                 <div
                     className="absolute z-50 left-0 right-0 mt-2 card p-2 max-h-60 overflow-y-auto"

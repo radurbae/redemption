@@ -122,7 +122,7 @@ export default function HabitForm({ habit, mode }: HabitFormProps) {
 
     return (
         <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
-            {/* Progress bar */}
+            {/* Bar progres */}
             <div className="border-b px-4 pt-safe" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)' }}>
                 <div className="max-w-md mx-auto py-4">
                     <div className="flex items-center justify-between mb-2">
@@ -146,7 +146,7 @@ export default function HabitForm({ habit, mode }: HabitFormProps) {
                 </div>
             </div>
 
-            {/* Content */}
+            {/* Konten */}
             <div className="flex-1 px-4 py-6 overflow-auto">
                 <div className="max-w-md mx-auto">
                     <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>
@@ -156,7 +156,7 @@ export default function HabitForm({ habit, mode }: HabitFormProps) {
                         {STEPS[step].description}
                     </p>
 
-                    {/* Step content */}
+                    {/* Konten step */}
                     {step === 0 && (
                         <div className="space-y-6">
                             {mode === 'create' && (
@@ -326,7 +326,7 @@ export default function HabitForm({ habit, mode }: HabitFormProps) {
                 </div>
             </div>
 
-            {/* Fixed bottom buttons */}
+            {/* Tombol bawah tetap */}
             <div
                 className="border-t px-4"
                 style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}

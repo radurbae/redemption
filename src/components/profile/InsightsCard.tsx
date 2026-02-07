@@ -20,7 +20,7 @@ export default function InsightsCard({ streakInfo, onRerollSuggestion }: Insight
                 <span>💡</span> Insights
             </h3>
 
-            {/* Streaks */}
+            {/* Streak */}
             <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
@@ -47,7 +47,7 @@ export default function InsightsCard({ streakInfo, onRerollSuggestion }: Insight
                 </div>
             </div>
 
-            {/* Weakest Category */}
+            {/* Kategori paling lemah */}
             {streakInfo.weakestCategory && (
                 <div
                     className="p-3 rounded-lg mb-3"
@@ -67,7 +67,7 @@ export default function InsightsCard({ streakInfo, onRerollSuggestion }: Insight
                 </div>
             )}
 
-            {/* Reroll CTA */}
+            {/* Tombol reroll */}
             {streakInfo.weakestCategory && onRerollSuggestion && (
                 <button
                     onClick={onRerollSuggestion}

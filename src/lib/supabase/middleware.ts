@@ -29,9 +29,6 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-    // issues with users being randomly logged out.
 
     const {
         data: { user },
@@ -65,17 +62,10 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (!user && !isPublicPath) {
-        // no user, redirect to landing page first
         const url = request.nextUrl.clone();
         url.pathname = '/landing';
         return NextResponse.redirect(url);
     }
 
-    // IMPORTANT: You *must* return the supabaseResponse object as is.
-    // If you're sure you want to modify the response, do so carefully:
-    // 1. Prefer to create a new response object using NextResponse.next()
-    // 2. Copy over all the cookies from supabaseResponse
-    // 3. Change the response object accordingly
-    // 4. Return it
     return supabaseResponse;
 }

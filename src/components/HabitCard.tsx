@@ -21,7 +21,7 @@ export default function HabitCard({
 }: HabitCardProps) {
     return (
         <div className="card overflow-hidden">
-            {/* Warning banner */}
+            {/* Banner peringatan */}
             {showNeverMissTwice && !checkin && (
                 <div className="bg-amber-50 border-b border-amber-100 px-4 py-2">
                     <p className="text-amber-700 text-sm font-medium flex items-center gap-2">
@@ -34,7 +34,7 @@ export default function HabitCard({
             )}
 
             <div className="p-4">
-                {/* Header */}
+                {/* Bagian atas */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                         <Link
@@ -50,7 +50,7 @@ export default function HabitCard({
                         </p>
                     </div>
 
-                    {/* Streak badge */}
+                    {/* Badge streak */}
                     {streak > 0 && (
                         <div className="flex items-center gap-1 px-2.5 py-1 bg-orange-50 text-orange-600 rounded-full text-sm font-medium">
                             <span>🔥</span>
@@ -59,13 +59,13 @@ export default function HabitCard({
                     )}
                 </div>
 
-                {/* Easy step reminder */}
+                {/* Pengingat langkah gampang */}
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                     <span className="text-gray-400">Start with: </span>
                     {habit.easy_step}
                 </p>
 
-                {/* Actions */}
+                {/* Aksi */}
                 <div className="flex items-center gap-2">
                     <CheckinButtons
                         habitId={habit.id}

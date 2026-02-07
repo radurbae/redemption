@@ -44,7 +44,7 @@ export default function LockedItemsPreview({ items }: LockedItemsPreviewProps) {
                         className="card p-4 opacity-50 relative"
                         style={{ borderColor: `${RARITY_COLORS[item.rarity]}20` }}
                     >
-                        {/* Lock icon */}
+                        {/* Ikon kunci */}
                         <div
                             className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
                             style={{ background: 'var(--background-secondary)' }}
@@ -52,12 +52,12 @@ export default function LockedItemsPreview({ items }: LockedItemsPreviewProps) {
                             <Lock className="w-3 h-3" style={{ color: 'var(--foreground-muted)' }} />
                         </div>
 
-                        {/* Icon */}
+                        {/* Ikon */}
                         <span className="text-2xl mb-2 block opacity-50">
                             {TYPE_ICONS[item.type]}
                         </span>
 
-                        {/* Name */}
+                        {/* Nama */}
                         <h4
                             className="font-semibold text-sm mb-1"
                             style={{ color: RARITY_COLORS[item.rarity] }}
@@ -65,7 +65,7 @@ export default function LockedItemsPreview({ items }: LockedItemsPreviewProps) {
                             {item.name}
                         </h4>
 
-                        {/* Unlock condition */}
+                        {/* Syarat buka */}
                         <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>
                             {item.unlockCondition}
                         </p>
@@ -76,7 +76,6 @@ export default function LockedItemsPreview({ items }: LockedItemsPreviewProps) {
     );
 }
 
-// Default locked items for the game
 export const DEFAULT_LOCKED_ITEMS: LockedItem[] = [
     {
         id: 'locked_1',

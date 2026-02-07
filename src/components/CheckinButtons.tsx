@@ -41,7 +41,6 @@ export default function CheckinButtons({
         });
     };
 
-    // Not checked in yet
     if (!optimisticStatus) {
         return (
             <div className="flex items-center gap-2 w-full">
@@ -65,7 +64,6 @@ export default function CheckinButtons({
         );
     }
 
-    // Marked as done
     if (optimisticStatus === 'done') {
         return (
             <div className="flex items-center gap-2 w-full">
@@ -86,7 +84,6 @@ export default function CheckinButtons({
         );
     }
 
-    // Marked as skipped
     return (
         <div className="flex items-center gap-2 w-full">
             <span className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">

@@ -14,7 +14,7 @@ interface PlayerCardProps {
 export default function PlayerCard({ profile, stats }: PlayerCardProps) {
     return (
         <div className="status-window p-5">
-            {/* Header */}
+            {/* Bagian atas */}
             <div className="flex items-start justify-between mb-4">
                 <div>
                     <div className="flex items-center gap-3 mb-1">
@@ -30,22 +30,22 @@ export default function PlayerCard({ profile, stats }: PlayerCardProps) {
                     )}
                 </div>
 
-                {/* Gold */}
+                {/* Koin */}
                 <div className="gold-amount text-lg">
                     <Coins className="w-5 h-5" />
                     <span>{profile.gold.toLocaleString()}</span>
                 </div>
             </div>
 
-            {/* XP Bar */}
+            {/* Bar XP */}
             <div className="mb-5">
                 <XPBar currentXP={profile.xp} level={profile.level} size="lg" />
             </div>
 
-            {/* Stats */}
+            {/* Statistik */}
             <StatsGrid stats={stats} />
 
-            {/* Equipped badge hint */}
+            {/* Petunjuk badge yang kepake */}
             {profile.equipped_badge && (
                 <div
                     className="mt-4 pt-4 border-t flex items-center gap-2 text-sm"

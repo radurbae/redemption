@@ -32,7 +32,7 @@ export default function RandomQuestCard({ dailyQuest, onComplete, isLoading }: R
                 borderWidth: '1px',
             }}
         >
-            {/* Header */}
+            {/* Bagian atas */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <span className="text-xl">{categoryIcon}</span>
@@ -55,7 +55,7 @@ export default function RandomQuestCard({ dailyQuest, onComplete, isLoading }: R
                 </div>
             </div>
 
-            {/* Quest Title & Description */}
+            {/* Judul & deskripsi quest */}
             <h3
                 className={`font-semibold text-base mb-1 ${dailyQuest.completed ? 'line-through' : ''}`}
                 style={{ color: dailyQuest.completed ? 'var(--foreground-muted)' : 'var(--foreground)' }}
@@ -68,7 +68,7 @@ export default function RandomQuestCard({ dailyQuest, onComplete, isLoading }: R
                 </p>
             )}
 
-            {/* Action Button */}
+            {/* Tombol aksi */}
             {dailyQuest.completed ? (
                 <div className="flex items-center gap-2 text-green-500 text-sm">
                     <Check className="w-4 h-4" />

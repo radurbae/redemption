@@ -18,7 +18,7 @@ export default function LootDropModal({ isOpen, onClose, loot }: LootDropModalPr
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* Backdrop */}
+            {/* Latar belakang */}
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                 onClick={onClose}
@@ -34,7 +34,7 @@ export default function LootDropModal({ isOpen, onClose, loot }: LootDropModalPr
                     Loot Drop!
                 </h2>
 
-                {/* Loot Card */}
+                {/* Kartu loot */}
                 <div
                     className={`loot-card ${loot.rarity} w-48 mx-auto p-6 rounded-xl border-2`}
                     style={{ borderColor: rarityColor, background: 'var(--card-bg)' }}

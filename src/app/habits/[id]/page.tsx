@@ -85,7 +85,7 @@ export default function HabitDetailPage({ params }: { params: { id: string } }) 
 
     return (
         <AppShell>
-            {/* Back button */}
+            {/* Tombol balik */}
             <Link
                 href="/"
                 className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm font-medium mb-4"
@@ -101,7 +101,7 @@ export default function HabitDetailPage({ params }: { params: { id: string } }) 
                 {habit.schedule === 'weekdays' ? 'Weekdays only' : 'Every day'}
             </p>
 
-            {/* 4 Laws breakdown */}
+            {/* Rincian 4 hukum */}
             <div className="space-y-4 mb-8">
                 <div className="card p-4">
                     <p className="text-sm font-medium text-indigo-600 mb-1">Identity</p>
@@ -135,7 +135,7 @@ export default function HabitDetailPage({ params }: { params: { id: string } }) 
                 )}
             </div>
 
-            {/* Actions */}
+            {/* Aksi */}
             <div className="space-y-3">
                 <button
                     onClick={() => setIsEditing(true)}
@@ -151,7 +151,7 @@ export default function HabitDetailPage({ params }: { params: { id: string } }) 
                 </button>
             </div>
 
-            {/* Delete confirmation */}
+            {/* Konfirmasi hapus */}
             <BottomSheet
                 isOpen={showDeleteSheet}
                 onClose={() => setShowDeleteSheet(false)}

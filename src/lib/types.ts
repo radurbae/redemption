@@ -9,7 +9,6 @@ export interface Habit {
   satisfying_reward: string | null;
   schedule: 'daily' | 'weekdays';
   created_at: string;
-  // Quest extensions
   quest_type?: 'main' | 'side';
   difficulty?: 'easy' | 'normal' | 'hard';
 }
@@ -59,9 +58,6 @@ export interface HabitTemplate {
   schedule: 'daily' | 'weekdays';
 }
 
-// =====================================================
-// GAMIFICATION TYPES
-// =====================================================
 
 export type Rank = 'E' | 'D' | 'C' | 'B' | 'A' | 'S' | 'SS';
 export type LootType = 'title' | 'badge' | 'theme' | 'frame';
@@ -109,10 +105,10 @@ export interface RewardLedger {
 }
 
 export interface PlayerStats {
-  strength: number;    // Consistency (completion rate)
-  agility: number;     // Fast completions (2-min starts)
-  endurance: number;   // Streak stability
-  intelligence: number; // Improvement rate
+  strength: number;    // Konsisten (rasio selesai)
+  agility: number;     // Cepet mulai (aturan 2 menit)
+  endurance: number;   // Streak yang stabil
+  intelligence: number; // Laju perkembangan
 }
 
 export interface RewardResult {
@@ -124,7 +120,6 @@ export interface RewardResult {
   dailyCleared: boolean;
 }
 
-// Rank thresholds
 export const RANK_THRESHOLDS: Record<Rank, { minLevel: number; minRate: number }> = {
   'E': { minLevel: 1, minRate: 0 },
   'D': { minLevel: 3, minRate: 50 },
@@ -137,7 +132,6 @@ export const RANK_THRESHOLDS: Record<Rank, { minLevel: number; minRate: number }
 
 export const RANKS_ORDERED: Rank[] = ['E', 'D', 'C', 'B', 'A', 'S', 'SS'];
 
-// Loot definitions
 export const AVAILABLE_TITLES = [
   { name: 'The Persistent', rarity: 'common' as LootRarity },
   { name: 'Never Miss Twice', rarity: 'rare' as LootRarity },
@@ -163,18 +157,16 @@ export const AVAILABLE_THEMES = [
   { name: 'aurora', rarity: 'legendary' as LootRarity },
 ];
 
-// Task type for To Do page
 export interface Task {
   id: string;
   user_id: string;
   title: string;
   completed: boolean;
   date: string;
-  scheduled_time: string | null; // HH:MM format or null if no time set
+  scheduled_time: string | null; // Format HH:MM, null kalo belum diset
   created_at: string;
 }
 
-// Random Quest System
 export type QuestCategory = 'wellness' | 'productivity' | 'social' | 'learning' | 'fitness' | 'creativity';
 export type QuestDifficulty = 'easy' | 'normal' | 'hard';
 
@@ -198,7 +190,6 @@ export interface DailyQuest {
   completed: boolean;
   completed_at: string | null;
   created_at: string;
-  // Joined from quest_pool
   quest?: QuestPoolItem;
 }
 
@@ -220,9 +211,6 @@ export const QUEST_CATEGORY_COLORS: Record<QuestCategory, string> = {
   creativity: '#a855f7',
 };
 
-// =====================================================
-// ITEM & ACHIEVEMENT TYPES
-// =====================================================
 
 export type ItemType = 'title' | 'badge' | 'theme' | 'artifact';
 export type EffectType = 'xp_boost' | 'gold_boost' | 'streak_buffer' | 'category_xp_boost' | 'skip_penalty_reduce';
@@ -248,7 +236,7 @@ export interface UserItem {
   item_id: string;
   equipped: boolean;
   unlocked_at: string;
-  item?: Item; // Joined
+  item?: Item; // Data gabungan item
 }
 
 export interface Achievement {
@@ -262,18 +250,17 @@ export interface ItemEffect {
   type: EffectType;
   value: number;
   category?: string;
-  source: string; // item name
+  source: string; // Nama item
 }
 
 export interface EquippedEffects {
-  xpBoostPercent: number;      // Total XP boost percentage (capped at 20%)
-  goldBoostPercent: number;    // Total gold boost percentage
-  categoryBoosts: Record<string, number>; // Category-specific XP boosts
-  skipPenaltyReduce: number;   // Skip penalty reduction percentage
-  streakBuffer: number;        // Extra streak buffer days
+  xpBoostPercent: number;      // Total boost XP (max 20%)
+  goldBoostPercent: number;    // Total boost koin
+  categoryBoosts: Record<string, number>; // Boost XP per kategori
+  skipPenaltyReduce: number;   // Potongan penalti skip
+  streakBuffer: number;        // Tambahan buffer hari buat streak
 }
 
-// Achievement definitions with unlock conditions
 export const ACHIEVEMENT_DEFINITIONS: Record<string, {
   name: string;
   check: (stats: AchievementStats) => boolean;
@@ -315,4 +302,3 @@ export interface AchievementStats {
   perfectWeeks: number;
   daysWithoutSkip: number;
 }
-

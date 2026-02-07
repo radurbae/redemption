@@ -29,7 +29,7 @@ export default function LootProgressCard({
                 borderColor: isReady ? 'rgba(251, 191, 36, 0.3)' : undefined,
             }}
         >
-            {/* Glow overlay when ready */}
+            {/* Overlay glow kalau siap */}
             {isReady && (
                 <div
                     className="absolute inset-0 pointer-events-none animate-pulse"
@@ -40,7 +40,7 @@ export default function LootProgressCard({
             )}
 
             <div className="flex items-start gap-4 relative">
-                {/* Icon */}
+                {/* Ikon */}
                 <div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
                     style={{
@@ -59,7 +59,7 @@ export default function LootProgressCard({
                     )}
                 </div>
 
-                {/* Content */}
+                {/* Konten */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="font-bold" style={{ color: 'var(--foreground)' }}>
@@ -76,7 +76,7 @@ export default function LootProgressCard({
                         </span>
                     </div>
 
-                    {/* Progress Bar */}
+                    {/* Bar progres */}
                     <div
                         className="h-3 rounded-full overflow-hidden mb-2"
                         style={{ background: 'rgba(0, 0, 0, 0.3)' }}
@@ -105,7 +105,7 @@ export default function LootProgressCard({
                 </div>
             </div>
 
-            {/* CTA */}
+            {/* Tombol ajakan */}
             {isReady && (
                 <Link
                     href="/quests"

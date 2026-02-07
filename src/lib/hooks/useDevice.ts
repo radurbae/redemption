@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-/**
- * Detects if the app is running in standalone PWA mode
- */
 export function useIsStandalone(): boolean {
     const [isStandalone, setIsStandalone] = useState(false);
 
@@ -28,9 +25,6 @@ export function useIsStandalone(): boolean {
     return isStandalone;
 }
 
-/**
- * Detects if the device is running iOS
- */
 export function useIsIOS(): boolean {
     const [isIOS, setIsIOS] = useState(false);
 
@@ -41,9 +35,6 @@ export function useIsIOS(): boolean {
     return isIOS;
 }
 
-/**
- * Detects if user prefers reduced motion
- */
 export function usePrefersReducedMotion(): boolean {
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 

@@ -1,7 +1,6 @@
 const CACHE_NAME = 'one-percent-better-v4';
 const OFFLINE_URL = '/offline';
 
-// Static assets to cache immediately
 const STATIC_ASSETS = [
     '/landing',
     '/demo',
@@ -16,13 +15,11 @@ const STATIC_ASSETS = [
     '/icons/apple-touch-icon.png',
 ];
 
-// API endpoints to cache with stale-while-revalidate
 const SWR_PATTERNS = [
     /\/_next\/static\//,
     /\/fonts\//,
 ];
 
-// Install event - cache static assets
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -32,7 +29,6 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -46,12 +42,10 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Helper: Stale-while-revalidate strategy
 async function staleWhileRevalidate(request) {
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(request);
 
-    // Start network fetch in background
     const networkPromise = fetch(request).then((response) => {
         if (response.ok) {
             cache.put(request, response.clone());
@@ -59,11 +53,9 @@ async function staleWhileRevalidate(request) {
         return response;
     }).catch(() => null);
 
-    // Return cached immediately if available, otherwise wait for network
     return cachedResponse || networkPromise;
 }
 
-// Helper: Network first with cache fallback
 async function networkFirst(request) {
     try {
         const response = await fetch(request);
@@ -82,23 +74,18 @@ async function networkFirst(request) {
     }
 }
 
-// Fetch event
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Skip non-GET requests
     if (request.method !== 'GET') return;
 
-    // Skip cross-origin requests
     if (url.origin !== location.origin) return;
 
-    // Skip API routes and auth
     if (url.pathname.startsWith('/api') || url.pathname.startsWith('/auth')) {
         return;
     }
 
-    // Static assets: stale-while-revalidate
     if (
         url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2)$/) ||
         url.pathname.startsWith('/icons/') ||
@@ -109,7 +96,6 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // App shell pages: stale-while-revalidate for faster perceived load
     if (
         url.pathname === '/landing' ||
         url.pathname === '/demo' ||
@@ -122,13 +108,10 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Other HTML pages: network first with offline fallback
     event.respondWith(networkFirst(request));
 });
 
-// Background sync for offline actions (future enhancement)
 self.addEventListener('sync', (event) => {
     if (event.tag === 'sync-checkins') {
-        // Handle offline checkin sync
     }
 });

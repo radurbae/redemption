@@ -15,7 +15,6 @@ import { calculateStreak } from '@/lib/utils/streak';
 import { calculateRewards, levelFromXp, rollForLoot } from '@/lib/utils/rewards';
 import { getDailyQuests, completeDailyQuest, refreshDailyQuests, type YesterdayEvaluation } from '@/lib/utils/quests';
 
-// Dynamic imports for modals (reduces initial bundle)
 const LevelUpModal = dynamic(() => import('@/components/LevelUpModal'), { ssr: false });
 const LootDropModal = dynamic(() => import('@/components/LootDropModal'), { ssr: false });
 
@@ -48,7 +47,6 @@ export default function QuestsPage() {
 
         if (!user) return;
 
-        // Fetch all data
         const [
             { data: habits },
             { data: checkins },
@@ -66,7 +64,6 @@ export default function QuestsPage() {
             return;
         }
 
-        // Filter today's habits and enrich with checkin data
         const todayHabits = habits.filter(h => shouldShowHabitOnDate(h, today));
         const enrichedQuests: QuestHabit[] = todayHabits.map(habit => {
             const todayCheckin = checkins?.find(c => c.habit_id === habit.id && c.date === today) || null;
@@ -75,7 +72,6 @@ export default function QuestsPage() {
             return { ...habit, checkin: todayCheckin, streak };
         });
 
-        // Fetch random quests (with yesterday evaluation)
         const { quests: daily, evaluation } = await getDailyQuests();
 
         setQuests(enrichedQuests);
@@ -118,7 +114,6 @@ export default function QuestsPage() {
         )));
 
         try {
-            // Upsert checkin
             await supabase.from('checkins').upsert({
                 user_id: user.id,
                 habit_id: quest.id,
@@ -126,7 +121,6 @@ export default function QuestsPage() {
                 status: 'done',
             }, { onConflict: 'user_id,habit_id,date' });
 
-            // Calculate rewards
             const completedCount = quests.filter(q => q.checkin?.status === 'done').length + 1;
             const scheduledCount = quests.length;
             const isDailyCleared = completedCount === scheduledCount;
@@ -136,13 +130,11 @@ export default function QuestsPage() {
                 isDailyCleared,
             });
 
-            // Update profile
             const newXp = profile.xp + rewards.xp;
             const newGold = profile.gold + rewards.gold;
             const oldLevel = profile.level;
             const calculatedLevel = levelFromXp(newXp);
 
-            // Fire independent updates in parallel
             const lootPromise = supabase.from('loot').select('type, name').eq('user_id', user.id);
 
             await Promise.all([
@@ -168,13 +160,11 @@ export default function QuestsPage() {
                 }, { onConflict: 'user_id,date' }),
             ]);
 
-            // Check for level up
             if (calculatedLevel > oldLevel) {
                 setNewLevel(calculatedLevel);
                 setShowLevelUp(true);
             }
 
-            // Roll for loot
             const { data: existingLoot } = await lootPromise;
             const lootKeys = existingLoot?.map(l => `${l.type}:${l.name}`) || [];
             const drop = rollForLoot(lootKeys);
@@ -192,10 +182,8 @@ export default function QuestsPage() {
                 }
             }
 
-            // Show toast
             showToast(`+${rewards.xp} XP, +${rewards.gold} Gold`, 'success');
 
-            // Refresh data
             fetchData();
         } catch (err) {
             console.error('Quest completion failed:', err);
@@ -249,7 +237,6 @@ export default function QuestsPage() {
 
         if (result) {
             showToast(`+${result.xp} XP, +${result.gold} Gold`, 'success');
-            // Refresh to get updated quest status
             const { quests: updated } = await getDailyQuests();
             setRandomQuests(updated);
         }
@@ -290,7 +277,7 @@ export default function QuestsPage() {
 
     return (
         <AppShell>
-            {/* Header */}
+            {/* Bagian atas */}
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Daily Quests</h1>
@@ -306,7 +293,7 @@ export default function QuestsPage() {
                 </div>
             </div>
 
-            {/* Punishment Banner for Missed Quests */}
+            {/* Banner hukuman pas quest kelewat */}
             {punishmentInfo && punishmentInfo.missedQuests > 0 && (
                 <div className="card p-4 mb-6 border-red-500/30 bg-red-500/10">
                     <div className="flex items-start gap-3">
@@ -334,7 +321,7 @@ export default function QuestsPage() {
                 </div>
             )}
 
-            {/* Daily Clear Banner */}
+            {/* Banner harian beres */}
             {totalCompleted === totalQuests && totalQuests > 0 && (
                 <div className="card p-4 mb-6 text-center border-green-500/30 bg-green-500/10">
                     <span className="text-2xl mb-2 block">🏆</span>
@@ -343,7 +330,7 @@ export default function QuestsPage() {
                 </div>
             )}
 
-            {/* Main Quests (Habits) */}
+            {/* Misi utama (habit) */}
             {mainQuests.length > 0 && (
                 <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
@@ -368,7 +355,7 @@ export default function QuestsPage() {
                 </div>
             )}
 
-            {/* Random Quests Section */}
+            {/* Bagian quest random */}
             {randomQuests.length > 0 && (
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
@@ -400,7 +387,7 @@ export default function QuestsPage() {
                 </div>
             )}
 
-            {/* Side Quests */}
+            {/* Misi sampingan */}
             {sideQuests.length > 0 && (
                 <div>
                     <div className="flex items-center gap-2 mb-3">
@@ -425,7 +412,7 @@ export default function QuestsPage() {
                 </div>
             )}
 
-            {/* Empty State */}
+            {/* Belum ada data */}
             {quests.length === 0 && randomQuests.length === 0 && (
                 <div className="card p-8 text-center">
                     <span className="text-4xl mb-4 block">⚔️</span>
@@ -436,14 +423,14 @@ export default function QuestsPage() {
                 </div>
             )}
 
-            {/* Level Up Modal */}
+            {/* Modal naik level */}
             <LevelUpModal
                 isOpen={showLevelUp}
                 onClose={() => setShowLevelUp(false)}
                 newLevel={newLevel}
             />
 
-            {/* Loot Drop Modal */}
+            {/* Modal loot acak */}
             <LootDropModal
                 isOpen={!!lootDrop}
                 onClose={() => setLootDrop(null)}

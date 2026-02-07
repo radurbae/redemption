@@ -42,7 +42,6 @@ export default function ProfilePage() {
 
         setEmail(user.email || '');
 
-        // Fetch profile
         const { data: profileData } = await supabase
             .from('player_profile')
             .select('*')
@@ -53,7 +52,6 @@ export default function ProfilePage() {
             setProfile(profileData);
         }
 
-        // Fetch all stats in parallel
         const [profileStats, summary, streak, achievementList] = await Promise.all([
             calculateProfileStats(),
             getTodaySummary(),
@@ -76,7 +74,7 @@ export default function ProfilePage() {
         return (
             <AppShell>
                 <div className="space-y-4">
-                    {/* Header skeleton */}
+                    {/* Placeholder bagian atas */}
                     <div className="card p-5">
                         <div className="flex items-center gap-4 mb-4">
                             <div className="skeleton w-16 h-16 rounded-full" />
@@ -89,17 +87,17 @@ export default function ProfilePage() {
                         <div className="skeleton h-10 w-full" />
                     </div>
 
-                    {/* Stats grid skeleton */}
+                    {/* Placeholder grid stat */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {[1, 2, 3, 4, 5, 6].map(i => (
                             <div key={i} className="skeleton h-32" />
                         ))}
                     </div>
 
-                    {/* Insights skeleton */}
+                    {/* Placeholder wawasan */}
                     <div className="skeleton h-40" />
 
-                    {/* Achievements skeleton */}
+                    {/* Placeholder pencapaian */}
                     <div className="skeleton h-24" />
                 </div>
             </AppShell>
@@ -124,7 +122,7 @@ export default function ProfilePage() {
 
     return (
         <AppShell>
-            {/* Top Bar */}
+            {/* Bar atas */}
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Status</h1>
                 <div className="flex items-center gap-2">
@@ -139,10 +137,10 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Hero Header */}
+            {/* Header hero */}
             <ProfileHeader profile={profile} email={email} todaySummary={todaySummary} />
 
-            {/* Stats Grid */}
+            {/* Grid stat */}
             <div className="mb-6">
                 <h2 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--foreground-muted)' }}>
                     Stats
@@ -203,10 +201,10 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Insights */}
+            {/* Wawasan */}
             <InsightsCard streakInfo={streakInfo} />
 
-            {/* Achievements */}
+            {/* Pencapaian */}
             <AchievementsRow achievements={achievements} />
         </AppShell>
     );

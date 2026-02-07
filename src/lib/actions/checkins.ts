@@ -18,7 +18,6 @@ export async function setCheckin(
         throw new Error('Not authenticated');
     }
 
-    // Upsert the checkin
     const { error } = await supabase
         .from('checkins')
         .upsert(
@@ -106,7 +105,6 @@ export async function getCheckinsForMonth(
         return [];
     }
 
-    // Get first and last day of month
     const startDate = new Date(year, month, 1);
     const endDate = new Date(year, month + 1, 0);
 

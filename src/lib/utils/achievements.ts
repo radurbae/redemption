@@ -1,30 +1,18 @@
 import { createClient } from '@/lib/supabase/client';
 import type { Item, AchievementStats } from '@/lib/types';
 
-/**
- * Achievement Engine
- * 
- * Checks player stats against achievement definitions and unlocks
- * any earned achievements along with their associated items.
- */
 
 interface UnlockResult {
     achievement: string;
     items: Item[];
 }
 
-/**
- * Check and unlock achievements for a user
- * Returns list of newly unlocked achievements and their items
- */
 export async function checkAchievements(userId: string): Promise<UnlockResult[]> {
     const supabase = createClient();
     const results: UnlockResult[] = [];
 
-    // Get current stats
     const stats = await getAchievementStats(userId);
 
-    // Get already unlocked achievements
     const { data: existing } = await supabase
         .from('achievements')
         .select('key')
@@ -32,7 +20,6 @@ export async function checkAchievements(userId: string): Promise<UnlockResult[]>
 
     const unlockedKeys = new Set((existing || []).map(a => a.key));
 
-    // Get all items for lookup
     const { data: allItems } = await supabase
         .from('items')
         .select('*');
@@ -47,7 +34,6 @@ export async function checkAchievements(userId: string): Promise<UnlockResult[]>
         }
     });
 
-    // Check each achievement definition
     const definitions: Record<string, { name: string; check: (s: AchievementStats) => boolean }> = {
         first_quest: { name: 'First Quest', check: (s) => s.totalQuests >= 1 },
         streak_7: { name: '7-Day Streak', check: (s) => s.currentStreak >= 7 },
@@ -73,24 +59,18 @@ export async function checkAchievements(userId: string): Promise<UnlockResult[]>
     };
 
     for (const [key, def] of Object.entries(definitions)) {
-        // Skip if already unlocked
         if (unlockedKeys.has(key)) continue;
 
-        // Check if condition is met
         if (!def.check(stats)) continue;
 
-        // Unlock achievement
         await supabase.from('achievements').insert({
             user_id: userId,
             key,
         });
 
-        // Get items to grant
         const itemsToGrant = itemsByUnlockKey.get(key) || [];
 
-        // Grant items
         for (const item of itemsToGrant) {
-            // Check if user already has this item
             const { data: existingItem } = await supabase
                 .from('user_items')
                 .select('id')
@@ -116,27 +96,21 @@ export async function checkAchievements(userId: string): Promise<UnlockResult[]>
     return results;
 }
 
-/**
- * Get current achievement stats for a user
- */
 export async function getAchievementStats(userId: string): Promise<AchievementStats> {
     const supabase = createClient();
 
-    // Get profile
     const { data: profile } = await supabase
         .from('player_profile')
         .select('level, rank')
         .eq('user_id', userId)
         .single();
 
-    // Get total completed quests
     const { count: totalQuests } = await supabase
         .from('daily_quests')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
         .eq('completed', true);
 
-    // Get completed quests by category
     const { data: questsWithCategory } = await supabase
         .from('daily_quests')
         .select('quest:quest_pool(category)')
@@ -155,7 +129,6 @@ export async function getAchievementStats(userId: string): Promise<AchievementSt
         if (category === 'wellness') wellnessQuests++;
     });
 
-    // Get current streak from checkins
     const { data: checkins } = await supabase
         .from('checkins')
         .select('date, status')
@@ -170,7 +143,6 @@ export async function getAchievementStats(userId: string): Promise<AchievementSt
         .map(c => c.date)
         .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
-    // Simple streak calculation
     if (sortedDates.length > 0) {
         const today = new Date().toISOString().split('T')[0];
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
@@ -190,7 +162,6 @@ export async function getAchievementStats(userId: string): Promise<AchievementSt
         }
     }
 
-    // Check for comebacks (done after skip)
     let comebackCount = 0;
     const allCheckins = (checkins || []).sort((a, b) =>
         new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -210,20 +181,16 @@ export async function getAchievementStats(userId: string): Promise<AchievementSt
         comebackCount,
         level: profile?.level || 1,
         rank: profile?.rank || 'E',
-        morningCount: 0, // TODO: track session time
-        nightCount: 0,   // TODO: track session time
-        perfectWeeks: 0, // TODO: calculate
-        daysWithoutSkip: 0, // TODO: calculate
+        morningCount: 0, // TODO: hitung sesi pagi/malam
+        nightCount: 0,   // TODO: hitung sesi pagi/malam
+        perfectWeeks: 0, // TODO: hitung minggu sempurna
+        daysWithoutSkip: 0, // TODO: hitung hari tanpa skip
     };
 }
 
-/**
- * Grant the default starting items to a new user
- */
 export async function grantStarterItems(userId: string): Promise<void> {
     const supabase = createClient();
 
-    // Get default theme
     const { data: defaultTheme } = await supabase
         .from('items')
         .select('id')

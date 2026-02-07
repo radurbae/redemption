@@ -10,7 +10,6 @@ import { createClient } from '@/lib/supabase/client';
 import { getRarityColor } from '@/lib/utils/rewards';
 import { equipItem, unequipItem, getEquippedEffects, getEffectSummary } from '@/lib/utils/itemEffects';
 
-// Rarity glow colors
 const RARITY_GLOW: Record<string, string> = {
     common: 'rgba(156, 163, 175, 0.2)',
     rare: 'rgba(59, 130, 246, 0.25)',
@@ -46,7 +45,6 @@ export default function InventoryPage() {
         setUserItems((userItemsData || []) as (UserItem & { item: Item })[]);
         setQuestsCompleted(questCount || 0);
 
-        // Get equipped effects
         const equippedEffects = await getEquippedEffects(user.id);
         setEffects(equippedEffects);
 
@@ -77,21 +75,17 @@ export default function InventoryPage() {
         setSelectedItem(null);
     };
 
-    // Get owned item IDs
     const ownedItemIds = new Set(userItems.map(ui => ui.item_id));
 
-    // Filter items
     const filteredUserItems = filter === 'all'
         ? userItems
         : userItems.filter(ui => ui.item.type === filter);
 
-    // Get locked items (not owned)
     const lockedItems = allItems.filter(item =>
         !ownedItemIds.has(item.id) &&
         (filter === 'all' || item.type === filter)
     );
 
-    // Get equipped items
     const equippedItems = userItems.filter(ui => ui.equipped);
 
     const filterButtons: { value: typeof filter; label: string; icon: string }[] = [
@@ -102,7 +96,6 @@ export default function InventoryPage() {
         { value: 'artifact', label: 'Artifacts', icon: '💎' },
     ];
 
-    // Loot progress
     const questsForNextLoot = 10;
     const questsTowardNext = questsCompleted % questsForNextLoot;
     const lootProgress = Math.round((questsTowardNext / questsForNextLoot) * 100);
@@ -128,7 +121,7 @@ export default function InventoryPage() {
                     Inventory
                 </h1>
 
-                {/* Loot Progress Card */}
+                {/* Kartu progres loot */}
                 <div
                     className="card p-5 mb-6 relative overflow-hidden"
                     style={{
@@ -168,7 +161,7 @@ export default function InventoryPage() {
                     </div>
                 </div>
 
-                {/* Equipped Section */}
+                {/* Bagian yang kepake */}
                 {equippedItems.length > 0 && (
                     <div className="mb-6">
                         <h3 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--foreground-muted)' }}>
@@ -196,7 +189,7 @@ export default function InventoryPage() {
                                 </div>
                             ))}
                         </div>
-                        {/* Effect Summary */}
+                        {/* Ringkasan efek */}
                         {effects && getEffectSummary(effects).length > 0 && (
                             <div
                                 className="flex flex-wrap gap-2"
@@ -218,7 +211,7 @@ export default function InventoryPage() {
                     </div>
                 )}
 
-                {/* Filter Tabs */}
+                {/* Tab filter */}
                 <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
                     {filterButtons.map(btn => (
                         <button
@@ -244,7 +237,7 @@ export default function InventoryPage() {
                     ))}
                 </div>
 
-                {/* Owned Items Grid */}
+                {/* Grid item punya */}
                 {filteredUserItems.length === 0 && lockedItems.length === 0 ? (
                     <div
                         className="card p-8 text-center"
@@ -273,7 +266,7 @@ export default function InventoryPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Owned Items */}
+                        {/* Item yang dipunya */}
                         {filteredUserItems.length > 0 && (
                             <div className="mb-6">
                                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--foreground-muted)' }}>
@@ -329,7 +322,7 @@ export default function InventoryPage() {
                             </div>
                         )}
 
-                        {/* Locked Items */}
+                        {/* Item terkunci */}
                         {lockedItems.length > 0 && (
                             <div className="mb-6">
                                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--foreground-muted)' }}>
@@ -362,7 +355,7 @@ export default function InventoryPage() {
                     </>
                 )}
 
-                {/* Item Detail Bottom Sheet */}
+                {/* Panel bawah detail item */}
                 <BottomSheet
                     isOpen={!!selectedItem}
                     onClose={() => setSelectedItem(null)}
@@ -370,7 +363,7 @@ export default function InventoryPage() {
                 >
                     {selectedItem && (
                         <div className="space-y-4">
-                            {/* Item icon */}
+                            {/* Ikon item */}
                             <div className="text-center">
                                 <span
                                     className="text-6xl inline-block mb-2"
@@ -386,12 +379,12 @@ export default function InventoryPage() {
                                 </p>
                             </div>
 
-                            {/* Description */}
+                            {/* Deskripsi */}
                             <p className="text-sm text-center" style={{ color: 'var(--foreground-muted)' }}>
                                 {selectedItem.item.description || 'A rare item earned through your dedication.'}
                             </p>
 
-                            {/* Effect */}
+                            {/* Efek */}
                             {selectedItem.item.effect_type && (
                                 <div
                                     className="p-3 rounded-xl text-center"
@@ -406,7 +399,7 @@ export default function InventoryPage() {
                                 </div>
                             )}
 
-                            {/* Actions */}
+                            {/* Aksi */}
                             {selectedItem.equipped ? (
                                 <button
                                     onClick={() => handleUnequip(selectedItem)}

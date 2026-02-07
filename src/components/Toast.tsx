@@ -30,10 +30,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         const id = Math.random().toString(36).substr(2, 9);
         setToasts(prev => [...prev, { id, message, type }]);
 
-        // Start exit animation after delay
         setTimeout(() => {
             setExitingIds(prev => new Set(prev).add(id));
-            // Remove from DOM after animation
             setTimeout(() => {
                 setToasts(prev => prev.filter(t => t.id !== id));
                 setExitingIds(prev => {

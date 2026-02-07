@@ -64,7 +64,6 @@ export default function TrackerPage() {
         }
     }, [currentMonth]);
 
-    // Fetch all habits' completion for the month
     const fetchAllHabitCheckins = useCallback(async () => {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -121,7 +120,6 @@ export default function TrackerPage() {
         fetchAllHabitCheckins();
     }, [fetchAllHabitCheckins]);
 
-    // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowLeft') {
@@ -134,7 +132,6 @@ export default function TrackerPage() {
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Swipe handling
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.touches[0].clientX;
     };
@@ -210,7 +207,6 @@ export default function TrackerPage() {
         ? Math.round((doneCount / totalDaysInMonth) * 100)
         : 0;
 
-    // Calculate completion percents for all habits
     const completionPercents: Record<string, number> = {};
     habits.forEach(h => {
         const hCheckins = allCheckins[h.id] || [];
@@ -222,7 +218,6 @@ export default function TrackerPage() {
             : 0;
     });
 
-    // Calculate streaks
     const calculateStreaks = () => {
         let currentStreak = 0;
         let bestStreak = 0;
@@ -248,7 +243,6 @@ export default function TrackerPage() {
 
     const { currentStreak, bestStreak } = calculateStreaks();
 
-    // Check if last 3 days are empty
     const lastThreeDaysEmpty = (() => {
         const today = new Date();
         for (let i = 0; i < 3; i++) {
@@ -290,7 +284,7 @@ export default function TrackerPage() {
                     </div>
                 ) : (
                     <>
-                        {/* Monthly Summary */}
+                        {/* Ringkasan bulanan */}
                         <MonthlySummaryCard
                             monthLabel={format(currentMonth, 'MMMM yyyy')}
                             habitName={selectedHabit?.title || ''}
@@ -302,7 +296,7 @@ export default function TrackerPage() {
                             totalDays={totalDaysInMonth}
                         />
 
-                        {/* Habit Selector */}
+                        {/* Pilih habit */}
                         <HabitSelect
                             habits={habits}
                             selectedId={selectedHabitId}
@@ -310,14 +304,14 @@ export default function TrackerPage() {
                             onChange={setSelectedHabitId}
                         />
 
-                        {/* Calendar */}
+                        {/* Kalender */}
                         <div
                             ref={calendarRef}
                             className="card p-4 mb-4"
                             onTouchStart={handleTouchStart}
                             onTouchEnd={handleTouchEnd}
                         >
-                            {/* Month navigation */}
+                            {/* Navigasi bulan */}
                             <div className="flex items-center justify-between mb-4">
                                 <button
                                     onClick={() => changeMonth('prev')}
@@ -343,7 +337,7 @@ export default function TrackerPage() {
                                 </button>
                             </div>
 
-                            {/* Weekday headers */}
+                            {/* Header hari */}
                             <div className="grid grid-cols-7 gap-1.5 mb-2">
                                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
                                     <div
@@ -356,7 +350,7 @@ export default function TrackerPage() {
                                 ))}
                             </div>
 
-                            {/* Days grid */}
+                            {/* Grid tanggal */}
                             <div
                                 className={`grid grid-cols-7 gap-1.5 transition-all duration-150 ${monthTransition === 'left' ? 'opacity-0 -translate-x-4' :
                                     monthTransition === 'right' ? 'opacity-0 translate-x-4' : ''
@@ -379,7 +373,7 @@ export default function TrackerPage() {
                             </div>
                         </div>
 
-                        {/* Mini Stats Row */}
+                        {/* Baris stat mini */}
                         <div className="grid grid-cols-3 gap-3 mb-4">
                             <div className="card p-3 text-center">
                                 <p className="text-2xl font-bold text-green-500">{doneCount}</p>
@@ -395,7 +389,7 @@ export default function TrackerPage() {
                             </div>
                         </div>
 
-                        {/* Motivation Tip */}
+                        {/* Tips semangat */}
                         <MotivationTip
                             currentStreak={currentStreak}
                             bestStreak={bestStreak}
@@ -405,7 +399,7 @@ export default function TrackerPage() {
                     </>
                 )}
 
-                {/* Bottom sheet for day editing */}
+                {/* Panel bawah buat edit hari */}
                 <BottomSheet
                     isOpen={!!selectedDate}
                     onClose={() => setSelectedDate(null)}

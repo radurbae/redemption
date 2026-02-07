@@ -6,15 +6,12 @@ export default function IOSInstallBanner() {
     const [showBanner, setShowBanner] = useState(false);
 
     useEffect(() => {
-        // Check if iOS
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-        // Check if already in standalone mode (installed)
         const isStandalone =
             window.matchMedia('(display-mode: standalone)').matches ||
             ('standalone' in navigator && (navigator as unknown as { standalone: boolean }).standalone);
 
-        // Check if already dismissed
         const dismissed = localStorage.getItem('ios-install-banner-dismissed');
 
         if (isIOS && !isStandalone && !dismissed) {

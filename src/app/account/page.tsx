@@ -15,13 +15,13 @@ export default async function AccountPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Account</h1>
 
             <div className="card divide-y divide-gray-100">
-                {/* Email */}
+                {/* Email akun */}
                 <div className="p-4">
                     <p className="text-sm text-gray-500 mb-1">Email</p>
                     <p className="text-gray-900 font-medium">{user.email}</p>
                 </div>
 
-                {/* Member since */}
+                {/* Jadi member sejak */}
                 <div className="p-4">
                     <p className="text-sm text-gray-500 mb-1">Member since</p>
                     <p className="text-gray-900 font-medium">
@@ -34,7 +34,7 @@ export default async function AccountPage() {
                 </div>
             </div>
 
-            {/* Logout */}
+            {/* Keluar akun */}
             <form action="/auth/signout" method="post" className="mt-6">
                 <button
                     type="submit"
@@ -50,7 +50,7 @@ export default async function AccountPage() {
                 </button>
             </form>
 
-            {/* Footer quote */}
+            {/* Kutipan footer */}
             <p className="mt-8 text-center text-sm text-gray-400 italic">
                 &ldquo;You do not rise to the level of your goals.<br />
                 You fall to the level of your systems.&rdquo;

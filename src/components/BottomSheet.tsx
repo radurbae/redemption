@@ -39,14 +39,14 @@ export default function BottomSheet({ isOpen, onClose, title, children }: Bottom
 
     return (
         <div className="fixed inset-0 z-50">
-            {/* Backdrop */}
+            {/* Latar belakang */}
             <div
                 className="absolute inset-0 bg-black/50 transition-opacity"
                 onClick={onClose}
                 aria-hidden="true"
             />
 
-            {/* Sheet */}
+            {/* Panel bawah */}
             <div
                 ref={sheetRef}
                 role="dialog"
@@ -55,7 +55,7 @@ export default function BottomSheet({ isOpen, onClose, title, children }: Bottom
                 className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl sheet-enter md:hidden"
                 style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
             >
-                {/* Handle */}
+                {/* Pegangan */}
                 <div className="flex justify-center pt-3 pb-2">
                     <div className="w-10 h-1 bg-gray-300 rounded-full" />
                 </div>
@@ -71,7 +71,7 @@ export default function BottomSheet({ isOpen, onClose, title, children }: Bottom
                 </div>
             </div>
 
-            {/* Desktop: centered modal */}
+            {/* Di desktop: modal di tengah */}
             <div className="hidden md:flex items-center justify-center absolute inset-0 pointer-events-none">
                 <div
                     className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm pointer-events-auto animate-scale-in"

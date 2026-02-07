@@ -1,8 +1,5 @@
 import type { Rank, LootRarity } from '../types';
 
-// =====================================================
-// XP & GOLD CONSTANTS
-// =====================================================
 
 export const REWARDS = {
     BASE_XP: 10,
@@ -12,24 +9,14 @@ export const REWARDS = {
     DAILY_CLEAR_GOLD: 20,
     STREAK_XP_CAP: 10,
     DUNGEON_XP_MULTIPLIER: 2,
-    LOOT_DROP_CHANCE: 0.10, // 10%
+    LOOT_DROP_CHANCE: 0.10, // Peluang 10%
 };
 
-// =====================================================
-// LEVEL CALCULATIONS
-// =====================================================
 
-/**
- * Calculate XP required to reach a given level
- * Formula: 50 + level * 25
- */
 export function xpRequiredForLevel(level: number): number {
     return 50 + level * 25;
 }
 
-/**
- * Calculate total XP needed from level 1 to target level
- */
 export function totalXpForLevel(level: number): number {
     let total = 0;
     for (let l = 1; l < level; l++) {
@@ -38,9 +25,6 @@ export function totalXpForLevel(level: number): number {
     return total;
 }
 
-/**
- * Calculate level from total XP
- */
 export function levelFromXp(totalXp: number): number {
     let level = 1;
     let xpRemaining = totalXp;
@@ -53,9 +37,6 @@ export function levelFromXp(totalXp: number): number {
     return level;
 }
 
-/**
- * Calculate XP progress within current level (0-100%)
- */
 export function xpProgressPercent(totalXp: number, currentLevel: number): number {
     const xpForCurrentLevel = totalXpForLevel(currentLevel);
     const xpIntoLevel = totalXp - xpForCurrentLevel;
@@ -63,9 +44,6 @@ export function xpProgressPercent(totalXp: number, currentLevel: number): number
     return Math.min(100, Math.round((xpIntoLevel / xpNeeded) * 100));
 }
 
-// =====================================================
-// REWARD CALCULATIONS
-// =====================================================
 
 export interface RewardCalculation {
     xp: number;
@@ -79,9 +57,6 @@ export interface RewardCalculation {
     };
 }
 
-/**
- * Calculate rewards for completing a habit
- */
 export function calculateRewards(options: {
     streak: number;
     isFastCompletion?: boolean;
@@ -104,7 +79,6 @@ export function calculateRewards(options: {
     xp += dailyClearXp;
     gold += dailyClearGold;
 
-    // Dungeon multiplier applies to base + streak only
     const dungeonBonus = isDungeonRun ? (REWARDS.BASE_XP + streakBonus) : 0;
     xp += dungeonBonus;
 
@@ -121,9 +95,6 @@ export function calculateRewards(options: {
     };
 }
 
-// =====================================================
-// RANK CALCULATIONS
-// =====================================================
 
 const RANK_THRESHOLDS: { rank: Rank; minLevel: number; minRate: number }[] = [
     { rank: 'SS', minLevel: 50, minRate: 90 },
@@ -135,9 +106,6 @@ const RANK_THRESHOLDS: { rank: Rank; minLevel: number; minRate: number }[] = [
     { rank: 'E', minLevel: 1, minRate: 0 },
 ];
 
-/**
- * Calculate rank based on level and 7-day completion rate
- */
 export function calculateRank(level: number, weeklyCompletionRate: number): Rank {
     for (const threshold of RANK_THRESHOLDS) {
         if (level >= threshold.minLevel && weeklyCompletionRate >= threshold.minRate) {
@@ -147,9 +115,6 @@ export function calculateRank(level: number, weeklyCompletionRate: number): Rank
     return 'E';
 }
 
-/**
- * Get rank display info
- */
 export function getRankInfo(rank: Rank): { color: string; glow: string; label: string } {
     const rankInfo: Record<Rank, { color: string; glow: string; label: string }> = {
         'E': { color: '#6b7280', glow: 'none', label: 'E-Rank' },
@@ -163,9 +128,6 @@ export function getRankInfo(rank: Rank): { color: string; glow: string; label: s
     return rankInfo[rank];
 }
 
-// =====================================================
-// LOOT SYSTEM
-// =====================================================
 
 const TITLES = [
     { name: 'The Persistent', rarity: 'common' as LootRarity },
@@ -185,28 +147,22 @@ const BADGES = [
     { name: 'Diamond Star', rarity: 'legendary' as LootRarity },
 ];
 
-/**
- * Roll for loot drop
- */
 export function rollForLoot(existingLoot: string[]): { type: 'title' | 'badge'; name: string; rarity: LootRarity } | null {
     if (Math.random() > REWARDS.LOOT_DROP_CHANCE) {
         return null;
     }
 
-    // Combine available loot
     const allLoot = [
         ...TITLES.map(t => ({ ...t, type: 'title' as const })),
         ...BADGES.map(b => ({ ...b, type: 'badge' as const })),
     ];
 
-    // Filter out already owned
     const available = allLoot.filter(l => !existingLoot.includes(`${l.type}:${l.name}`));
 
     if (available.length === 0) {
         return null;
     }
 
-    // Weight by rarity (common more likely)
     const weighted: typeof available = [];
     for (const item of available) {
         const weight = item.rarity === 'common' ? 4 : item.rarity === 'rare' ? 2 : item.rarity === 'epic' ? 1 : 0.5;
@@ -219,9 +175,6 @@ export function rollForLoot(existingLoot: string[]): { type: 'title' | 'badge'; 
     return selected;
 }
 
-/**
- * Get rarity color
- */
 export function getRarityColor(rarity: LootRarity): string {
     const colors: Record<LootRarity, string> = {
         common: '#9ca3af',
@@ -232,9 +185,6 @@ export function getRarityColor(rarity: LootRarity): string {
     return colors[rarity];
 }
 
-// =====================================================
-// PLAYER STATS (Derived)
-// =====================================================
 
 export interface DerivedStats {
     strength: number;
@@ -243,9 +193,6 @@ export interface DerivedStats {
     intelligence: number;
 }
 
-/**
- * Calculate derived player stats from habit data
- */
 export function calculatePlayerStats(data: {
     completedLast30Days: number;
     scheduledLast30Days: number;
@@ -256,22 +203,18 @@ export function calculatePlayerStats(data: {
     thisWeekRate: number;
     lastWeekRate: number;
 }): DerivedStats {
-    // Strength = consistency (completion rate over 30 days)
     const strength = data.scheduledLast30Days > 0
         ? Math.round((data.completedLast30Days / data.scheduledLast30Days) * 100)
         : 0;
 
-    // Agility = fast completions ratio
     const agility = data.totalCompletions > 0
         ? Math.round((data.fastCompletions / data.totalCompletions) * 100)
         : 0;
 
-    // Endurance = streak stability (avg/max, capped at 100)
     const endurance = data.maxStreak > 0
         ? Math.min(100, Math.round((data.avgStreak / data.maxStreak) * 100))
         : 0;
 
-    // Intelligence = improvement rate (centered at 50)
     const intelligence = Math.min(100, Math.max(0,
         Math.round(data.thisWeekRate - data.lastWeekRate + 50)
     ));
@@ -279,9 +222,6 @@ export function calculatePlayerStats(data: {
     return { strength, agility, endurance, intelligence };
 }
 
-/**
- * Get stat icon name (lucide-react)
- */
 export function getStatIcon(stat: keyof DerivedStats): string {
     const icons: Record<keyof DerivedStats, string> = {
         strength: 'Dumbbell',

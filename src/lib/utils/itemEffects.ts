@@ -1,25 +1,15 @@
 import { createClient } from '@/lib/supabase/client';
 import type { EquippedEffects, Item, UserItem } from '@/lib/types';
 
-/**
- * Item Effects Engine
- * 
- * Calculates XP/gold modifiers from equipped items.
- * Max total XP boost is capped at 20%.
- */
 
-const MAX_XP_BOOST = 20; // Maximum total XP boost percentage
+const MAX_XP_BOOST = 20; // Batas total boost XP
 
-/**
- * Get all equipped items for a user
- */
 export async function getEquippedItems(userId: string): Promise<(UserItem & { item: Item })[]> {
     const supabase = createClient();
 
     const { data } = await supabase
         .from('user_items')
         .select(`
-      *,
       item:items(*)
     `)
         .eq('user_id', userId)
@@ -28,9 +18,6 @@ export async function getEquippedItems(userId: string): Promise<(UserItem & { it
     return (data || []) as (UserItem & { item: Item })[];
 }
 
-/**
- * Calculate total effects from equipped items
- */
 export async function getEquippedEffects(userId: string): Promise<EquippedEffects> {
     const equippedItems = await getEquippedItems(userId);
 
@@ -66,10 +53,8 @@ export async function getEquippedEffects(userId: string): Promise<EquippedEffect
         }
     }
 
-    // Cap total XP boost at MAX_XP_BOOST
     xpBoostPercent = Math.min(xpBoostPercent, MAX_XP_BOOST);
 
-    // Cap category boosts at 15% each
     for (const key of Object.keys(categoryBoosts)) {
         categoryBoosts[key] = Math.min(categoryBoosts[key], 15);
     }
@@ -83,9 +68,6 @@ export async function getEquippedEffects(userId: string): Promise<EquippedEffect
     };
 }
 
-/**
- * Apply effects to base XP reward
- */
 export function applyXpEffects(
     baseXp: number,
     effects: EquippedEffects,
@@ -93,20 +75,15 @@ export function applyXpEffects(
 ): number {
     let totalBoost = effects.xpBoostPercent;
 
-    // Add category-specific boost if applicable
     if (category && effects.categoryBoosts[category]) {
         totalBoost += effects.categoryBoosts[category];
     }
 
-    // Cap at MAX_XP_BOOST
     totalBoost = Math.min(totalBoost, MAX_XP_BOOST);
 
     return Math.round(baseXp * (1 + totalBoost / 100));
 }
 
-/**
- * Apply effects to skip penalty
- */
 export function applySkipPenalty(
     basePenalty: number,
     effects: EquippedEffects
@@ -115,13 +92,9 @@ export function applySkipPenalty(
     return Math.round(basePenalty * (1 - reduction));
 }
 
-/**
- * Equip an item (unequip others of same type)
- */
 export async function equipItem(userId: string, itemId: string): Promise<boolean> {
     const supabase = createClient();
 
-    // Get the item to check its type
     const { data: item } = await supabase
         .from('items')
         .select('type')
@@ -130,7 +103,6 @@ export async function equipItem(userId: string, itemId: string): Promise<boolean
 
     if (!item) return false;
 
-    // Unequip all items of the same type
     const { data: userItems } = await supabase
         .from('user_items')
         .select('id, item:items(type)')
@@ -147,7 +119,6 @@ export async function equipItem(userId: string, itemId: string): Promise<boolean
         }
     }
 
-    // Equip the new item
     const { error } = await supabase
         .from('user_items')
         .update({ equipped: true })
@@ -157,9 +128,6 @@ export async function equipItem(userId: string, itemId: string): Promise<boolean
     return !error;
 }
 
-/**
- * Unequip an item
- */
 export async function unequipItem(userId: string, itemId: string): Promise<boolean> {
     const supabase = createClient();
 
@@ -172,9 +140,6 @@ export async function unequipItem(userId: string, itemId: string): Promise<boole
     return !error;
 }
 
-/**
- * Get effect summary text for display
- */
 export function getEffectSummary(effects: EquippedEffects): string[] {
     const lines: string[] = [];
 

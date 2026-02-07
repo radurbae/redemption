@@ -14,7 +14,6 @@ export default function LevelUpModal({ isOpen, onClose, newLevel }: LevelUpModal
 
     useEffect(() => {
         if (isOpen) {
-            // Generate confetti
             const pieces = Array.from({ length: 30 }, (_, i) => ({
                 id: i,
                 left: Math.random() * 100,
@@ -29,13 +28,13 @@ export default function LevelUpModal({ isOpen, onClose, newLevel }: LevelUpModal
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* Backdrop */}
+            {/* Latar belakang */}
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                 onClick={onClose}
             />
 
-            {/* Confetti */}
+            {/* Konfeti */}
             {confetti.map((piece) => (
                 <div
                     key={piece.id}
